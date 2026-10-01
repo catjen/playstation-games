@@ -73,10 +73,11 @@ In both modes the **account facts** (`access`, `platforms`) of every existing
 entry are recalculated from Sony, so a Claimed game bought later becomes Owned
 and a platform bought later is added.
 
-`addedOn` is when the Game came onto the account: the earliest Sony
-activation date among its entitlements, or, if Sony gives none, the date of the
-run that first saw it. Set once. To verify in implementation: whether the
-activation date is reliable for both purchases and PS Plus claims.
+`addedOn` is the date of the run that first saw the Game. Set once. Research
+on 01.10.2026 found that Sony's purchased-games list carries no activation
+date (only a sort order by it), so the first run gives the whole existing
+library the same date; within that block the list keeps Sony's newest-first
+activation order, so "newest first" still reads right.
 
 A game in the list that Sony no longer returns gets `access: "gone"` and
 `goneOn` set to the date of the run that first noticed (so it is accurate to
@@ -117,7 +118,13 @@ default. If it shows up again, its access is recalculated as usual and
 
 One record per Game (see `CONTEXT.md`): entitlements sharing a PSN concept ID
 collapse into one record, editions included. DLC, demos, betas and apps are
-dropped. `id` is the concept ID.
+dropped. `id` is the concept ID. The purchased-games list has no content-type
+field, so whether an item is a game comes from its store data.
+
+Store data (description, release date, age rating, online notices, content
+type) is not covered by the `psn-api` library; it comes from Sony's web store
+API directly, whose request and response shape is captured by a probe before
+the mapping code is written.
 
 Co-op means playing together, versus means playing against each other; couch
 means one console, online means over the network (see `CONTEXT.md`). The page
