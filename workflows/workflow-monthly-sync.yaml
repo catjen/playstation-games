@@ -91,9 +91,31 @@ jobs:
             store: ${{ data.latest("gamelist", "grouped").attributes.store }}
             igdb: ${{ data.latest("igdb", "igdb").attributes.details }}
             dryRun: ${{ inputs.dryRun }}
-      - name: commit
+      # The git commit method stages docs/games.json and then commits the whole
+      # index, so anything else already staged would ride along to the public repo.
+      - name: staged
         dependsOn:
           - step: write
+            condition:
+              type: succeeded
+        task:
+          type: model_method
+          modelIdOrName: git
+          methodName: status
+      - name: only-the-list-is-staged
+        dependsOn:
+          - step: staged
+            condition:
+              type: succeeded
+        task:
+          type: assert
+          expr: >-
+            data.latest("git", "status").attributes.entries.filter(e,
+              !e.status.startsWith(" ") && !e.status.startsWith("?") && e.path != "docs/games.json").size() == 0
+          message: "Files other than docs/games.json are staged in the repo; unstage them (git restore --staged .) and rerun"
+      - name: commit
+        dependsOn:
+          - step: only-the-list-is-staged
             condition:
               type: succeeded
         guard: '${{ data.latest("gamelist", "summary").attributes.fileChanged ? "" : "no change to commit" }}'
