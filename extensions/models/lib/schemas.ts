@@ -70,6 +70,7 @@ export const GameRecordSchema = z.object({
   id: z.string(),
   title: z.string(),
   platforms: z.array(z.string()),
+  productIds: z.array(z.string()),
   access: z.enum(["owned", "claimed", "gone"]),
   addedOn: z.string(),
   goneOn: z.string().nullable(),
@@ -79,4 +80,7 @@ export const GameRecordSchema = z.object({
 export type GameRecord = z.infer<typeof GameRecordSchema>;
 export type Access = GameRecord["access"];
 
-export const GameListSchema = z.object({ games: z.array(GameRecordSchema) });
+export const GameListSchema = z.object({
+  lastSync: z.string().nullable().default(null),
+  games: z.array(GameRecordSchema),
+});

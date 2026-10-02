@@ -1,28 +1,5 @@
 import type { GameRecord, IgdbDetails, LibraryGame, StoreDetails } from "./schemas.ts";
 
-export type Mode = "new" | "rebuild";
-
-export function idsToFetch(existing: GameRecord[], library: LibraryGame[], mode: Mode): string[] {
-  if (mode === "rebuild") return library.map((g) => g.id);
-  const known = new Set(existing.map((g) => g.id));
-  return library.filter((g) => !known.has(g.id)).map((g) => g.id);
-}
-
-export function checkPlausible(existing: GameRecord[], library: LibraryGame[]): void {
-  const present = existing.filter((g) => g.access !== "gone");
-  if (present.length === 0) return;
-  if (library.length === 0) {
-    throw new Error("PSN returned an empty library; refusing to mark every game as gone. Rerun later.");
-  }
-  const ids = new Set(library.map((g) => g.id));
-  const missing = present.filter((g) => !ids.has(g.id)).length;
-  if (present.length >= 10 && missing > present.length / 2) {
-    throw new Error(
-      `PSN returned ${library.length} games but ${missing} of ${present.length} listed games are missing; refusing to mark them gone. Rerun later.`,
-    );
-  }
-}
-
 function storeFields(s: StoreDetails, fallbackCover: string | null) {
   return {
     description: s.description,
@@ -43,6 +20,7 @@ function blank(lib: LibraryGame, today: string): GameRecord {
     id: lib.id,
     title: lib.title,
     platforms: lib.platforms,
+    productIds: lib.productIds,
     access: lib.access,
     addedOn: today,
     goneOn: null,
@@ -92,6 +70,7 @@ export function applyRun(a: {
       ...(old ?? blank(lib, a.today)),
       title: lib.title,
       platforms: lib.platforms,
+      productIds: lib.productIds,
       access: lib.access,
       goneOn: null,
       ...(s ? storeFields(s, lib.imageUrl) : {}),

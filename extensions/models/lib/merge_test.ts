@@ -1,5 +1,5 @@
-import { assertEquals, assertThrows } from "@std/assert";
-import { applyRun, checkPlausible, idsToFetch } from "./merge.ts";
+import { assertEquals } from "@std/assert";
+import { applyRun } from "./merge.ts";
 import type { GameRecord, IgdbDetails, LibraryGame, StoreDetails } from "./schemas.ts";
 
 const TODAY = "2026-11-01";
@@ -55,6 +55,7 @@ function record(id: string, over: Partial<GameRecord> = {}): GameRecord {
     id,
     title: `Game ${id}`,
     platforms: ["PS5"],
+    productIds: [`P-${id}`],
     access: "owned",
     addedOn: "2026-10-01",
     goneOn: null,
@@ -64,16 +65,7 @@ function record(id: string, over: Partial<GameRecord> = {}): GameRecord {
   };
 }
 
-Deno.test("new mode fetches only games not in the list", () => {
-  assertEquals(idsToFetch([record("concept:1")], [lib("concept:1"), lib("concept:2")], "new"), ["concept:2"]);
-});
 
-Deno.test("rebuild mode fetches every game in the library", () => {
-  assertEquals(idsToFetch([record("concept:1")], [lib("concept:1"), lib("concept:2")], "rebuild"), [
-    "concept:1",
-    "concept:2",
-  ]);
-});
 
 Deno.test("a new game is added with today's date and its details", () => {
   const r = applyRun({
@@ -187,22 +179,18 @@ Deno.test("games are ordered newest added first, keeping Sony's order within a d
   assertEquals(r.games.map((g) => g.id), ["concept:3", "concept:2", "concept:1"]);
 });
 
-Deno.test("an empty library is refused when the list has games", () => {
-  assertThrows(() => checkPlausible([record("concept:1")], []), Error, "empty library");
-});
 
-Deno.test("a library missing more than half of ten or more listed games is refused", () => {
-  const existing = Array.from({ length: 10 }, (_, i) => record(`concept:${i}`));
-  const library = [lib("concept:0"), lib("concept:1"), lib("concept:2"), lib("concept:3")];
-  assertThrows(() => checkPlausible(existing, library), Error, "refusing");
-});
 
-Deno.test("a normal monthly change passes the plausibility check", () => {
-  const existing = Array.from({ length: 10 }, (_, i) => record(`concept:${i}`));
-  const library = existing.slice(1).map((g) => lib(g.id));
-  checkPlausible(existing, library);
-});
 
-Deno.test("the first run with an empty list passes the plausibility check", () => {
-  checkPlausible([], [lib("concept:1")]);
+
+Deno.test("a product bought later is added to the game's product ids", () => {
+  const r = applyRun({
+    existing: [record("concept:1")],
+    library: [lib("concept:1", { productIds: ["P-concept:1", "P5-new"], platforms: ["PS4", "PS5"] })],
+    store: [],
+    igdb: [],
+    today: TODAY,
+  });
+  assertEquals(r.games[0].productIds, ["P-concept:1", "P5-new"]);
+  assertEquals(r.updated, ["concept:1"]);
 });
