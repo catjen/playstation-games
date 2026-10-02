@@ -1,0 +1,8 @@
+type: '@swamp/git'
+typeVersion: 2026.09.28.1
+id: 8ece9323-462c-4543-90a1-cc39bae2c69b
+name: git
+version: 1
+tags: {}
+globalArguments: {}
+methods: {}

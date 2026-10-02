@@ -1,0 +1,7 @@
+id: de343e10-e2af-4ea5-9d12-47502d75fd3c
+name: games
+type: local_encryption
+config:
+  auto_generate: true
+  base_dir: 'C:\Project\gh-private\playstation-games'
+createdAt: '2026-10-02T06:49:21.437Z'
