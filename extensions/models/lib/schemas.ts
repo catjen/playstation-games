@@ -24,6 +24,19 @@ export const LibraryGameSchema = z.object({
 });
 export type LibraryGame = z.infer<typeof LibraryGameSchema>;
 
+export const StoreProductSchema = z.object({
+  productId: z.string(),
+  listed: z.boolean(),
+  conceptId: z.string().nullable(),
+  kind: z.enum(["game", "other"]).nullable(),
+  description: z.string().nullable(),
+  releaseYear: z.number().int().nullable(),
+  ageRating: z.string().nullable(),
+  onlineRequired: z.boolean().nullable(),
+  coverUrl: z.string().nullable(),
+});
+export type StoreProduct = z.infer<typeof StoreProductSchema>;
+
 export const StoreDetailsSchema = z.object({
   id: z.string(),
   kind: z.enum(["game", "other"]),
