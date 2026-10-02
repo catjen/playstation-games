@@ -8,9 +8,9 @@ plus public store pages fetched by hand. Fixtures under `extensions/models/fixtu
 - `exchangeRefreshTokenForAuthTokens` returned the SAME refresh token, and both the
   first and the refreshed token had `refreshTokenExpiresIn = 863999` s (10 days).
   A refresh token cannot carry a monthly job.
-- Consequence: every run logs in with the NPSSO from the vault. The NPSSO itself is
-  believed to last about two months (community knowledge around `psn-api`, not
-  verified here). The user renews it with `scripts/renew-psn.ps1`; the page shows a
+- Consequence: every run logs in with the NPSSO from the vault. The ssocookie page
+  reports `expires_in: 5180416` for a fresh NPSSO (60 days, seen 02.10.2026), so
+  one renewal covers about two monthly runs. The user renews it with `scripts/renew-psn.ps1`; the page shows a
   banner when the list is stale.
 
 ## Purchased list (`getPurchasedGames`)

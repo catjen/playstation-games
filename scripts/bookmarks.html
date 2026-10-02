@@ -20,7 +20,7 @@
 </ol>
 <p>
   <a class="bm" href="https://ca.account.sony.com/api/v1/ssocookie">PSN token</a>
-  <a class="bm" href="javascript:(()=>{try{const v=JSON.parse(document.body.innerText).npsso;if(!v||v.length!==64)throw 0;navigator.clipboard.writeText(v).then(()=>alert('PSN token kopiert'),()=>prompt('Kopier denne:',v))}catch(e){alert('Fant ikke token. Logg inn paa playstation.com og last siden paa nytt.')}})()">Kopier PSN token</a>
+  <a class="bm" href="javascript:(()=>{const t=document.body.innerText,m=t.match(/&quot;npsso&quot;\s*:\s*&quot;([A-Za-z0-9]{64})&quot;/),x=t.match(/&quot;expires_in&quot;\s*:\s*(\d+)/);if(!m){alert('Fant ikke token. Logg inn paa playstation.com og last siden paa nytt.');return}const d=x?new Date(Date.now()+x[1]*1000).toISOString().slice(0,10):'ukjent';navigator.clipboard.writeText(m[1]).then(()=>alert('PSN token kopiert. Gyldig til '+d+'.'),()=>prompt('Kopier denne:',m[1]))})()">Kopier PSN token</a>
 </p>
 <p>Bruk: kj&oslash;r <code>pwsh -File scripts/renew-psn.ps1</code>, klikk <b>Kopier PSN token</b> p&aring; Sony-siden som &aring;pnes, og trykk Enter i skriptet.</p>
 </body>

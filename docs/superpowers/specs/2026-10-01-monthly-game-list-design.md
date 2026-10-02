@@ -169,6 +169,10 @@ gives an exact answer:
 
 1. **PSN ID**: IGDB's external-games link to the PlayStation Store.
 2. **Title + year**: normalised title equal, release year within one.
+   When the store gives no release year (delisted games), an exact normalised
+   title that exactly one IGDB candidate carries is accepted instead, as
+   `matchedBy: "title"` (decided 02.10.2026 after the dry run left 118 of 490
+   games unmatched, nearly all delisted).
 3. **None**: `igdbId` and `matchedBy` are `null`, the IGDB fields are `null`.
    Never a best guess.
 

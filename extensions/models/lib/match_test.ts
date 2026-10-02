@@ -45,7 +45,19 @@ Deno.test("two equal titles within the year window is ambiguous and gives no mat
   assertEquals(pickIgdbMatch([a, b], q), null);
 });
 
-Deno.test("without a release year only a PSN id link can match", () => {
-  const g: IgdbGame = { id: 2, name: "Doom", first_release_date: y(2016) };
-  assertEquals(pickIgdbMatch([g], { ...q, releaseYear: null }), null);
+Deno.test("without a release year a unique exact title matches by title alone", () => {
+  const g: IgdbGame = { id: 2, name: "Fall Guys", first_release_date: y(2020) };
+  const other: IgdbGame = { id: 3, name: "Fall Guys 2" };
+  assertEquals(pickIgdbMatch([g, other], { ...q, title: "Fall Guys", releaseYear: null }), { game: g, matchedBy: "title" });
+});
+
+Deno.test("without a release year two games with the same title give no match", () => {
+  const a: IgdbGame = { id: 4, name: "Doom", first_release_date: y(1993) };
+  const b: IgdbGame = { id: 5, name: "Doom", first_release_date: y(2016) };
+  assertEquals(pickIgdbMatch([a, b], { ...q, releaseYear: null }), null);
+});
+
+Deno.test("with a release year a title alone is not enough", () => {
+  const g: IgdbGame = { id: 6, name: "Doom", first_release_date: y(1993) };
+  assertEquals(pickIgdbMatch([g], q), null);
 });

@@ -19,7 +19,7 @@ export interface IgdbGame {
   external_games?: { uid?: string; external_game_source?: number }[];
 }
 
-export type IgdbMatch = { game: IgdbGame; matchedBy: "psn-id" | "title-year" };
+export type IgdbMatch = { game: IgdbGame; matchedBy: "psn-id" | "title-year" | "title" };
 
 const EDITION =
   /\b(?:digital\s+)?(?:deluxe|gold|ultimate|complete|standard|definitive|special|anniversary|game of the year|goty|premium|launch|cross-gen|digital)\s+edition\b/g;
@@ -52,9 +52,14 @@ export function pickIgdbMatch(
     )
   );
   if (linked) return { game: linked, matchedBy: "psn-id" };
-  if (q.releaseYear === null) return null;
-  const year = q.releaseYear;
   const want = normalizeTitle(q.title);
+  // Delisted games have no store page and so no year; an exact name that only
+  // one IGDB game carries is accepted then (decided 02.10.2026).
+  if (q.releaseYear === null) {
+    const named = candidates.filter((c) => normalizeTitle(c.name) === want);
+    return named.length === 1 ? { game: named[0], matchedBy: "title" } : null;
+  }
+  const year = q.releaseYear;
   const hits = candidates.filter((c) =>
     normalizeTitle(c.name) === want && c.first_release_date !== undefined &&
     Math.abs(yearOf(c.first_release_date) - year) <= 1

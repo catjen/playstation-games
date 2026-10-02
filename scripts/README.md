@@ -22,7 +22,7 @@ or create a
 bookmark named "Kopier PSN token" with this as its URL (one line):
 
 ```
-javascript:(()=>{try{const v=JSON.parse(document.body.innerText).npsso;if(!v||v.length!==64)throw 0;navigator.clipboard.writeText(v).then(()=>alert('PSN token kopiert'),()=>prompt('Kopier denne:',v))}catch(e){alert('Fant ikke token. Logg inn paa playstation.com og last siden paa nytt.')}})()
+javascript:(()=>{const t=document.body.innerText,m=t.match(/"npsso"\s*:\s*"([A-Za-z0-9]{64})"/),x=t.match(/"expires_in"\s*:\s*(\d+)/);if(!m){alert('Fant ikke token. Logg inn paa playstation.com og last siden paa nytt.');return}const d=x?new Date(Date.now()+x[1]*1000).toISOString().slice(0,10):'ukjent';navigator.clipboard.writeText(m[1]).then(()=>alert('PSN token kopiert. Gyldig til '+d+'.'),()=>prompt('Kopier denne:',m[1]))})()
 ```
 
 Optional second bookmark, "PSN token", to the token page itself:
