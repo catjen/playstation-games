@@ -114,3 +114,17 @@ Deno.test("a list from before lastSync existed still loads", async () => {
   const c = await write(dir, [lib("concept:1")]);
   assertEquals(out(c.getWrittenResources(), "summary").message, "Add 1 game");
 });
+
+Deno.test("a rerun the same day reports the file as unchanged", async () => {
+  const dir = await repo(null);
+  const first = await write(dir, [lib("concept:1")]);
+  const second = await write(dir, [lib("concept:1")]);
+  assertEquals(out(first.getWrittenResources(), "summary").fileChanged, true);
+  assertEquals(out(second.getWrittenResources(), "summary").fileChanged, false);
+});
+
+Deno.test("a dry run never reports the file as changed", async () => {
+  const dir = await repo(null);
+  const c = await write(dir, [lib("concept:1")], { dryRun: true });
+  assertEquals(out(c.getWrittenResources(), "summary").fileChanged, false);
+});

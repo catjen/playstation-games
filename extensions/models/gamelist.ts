@@ -35,7 +35,7 @@ const listPath = (context: any) => `${context.repoDir}/${context.globalArgs.path
 
 export const model = {
   type: "@catjen/gamelist",
-  version: "2026.10.02.2",
+  version: "2026.10.02.3",
   globalArguments: Global,
   resources: {
     plan: {
@@ -62,6 +62,8 @@ export const model = {
         updated: z.number(),
         gone: z.number(),
         dryRun: z.boolean(),
+        // The commit step runs only when this is true; git refuses an empty commit.
+        fileChanged: z.boolean(),
       }),
       lifetime: "infinite",
       garbageCollection: 12,
@@ -115,9 +117,10 @@ export const model = {
         const r = applyRun({ existing, library: args.games, store: args.store, igdb: args.igdb, today });
         // Written every run, so the page can tell a stale list from a quiet month.
         const message = commitMessage(r.added.length, r.updated.length, r.gone.length) ?? "Sync: no game changes";
-        if (!args.dryRun) {
-          await Deno.writeTextFile(file, JSON.stringify({ lastSync: today, games: r.games }, null, 2) + "\n");
-        }
+        const text = JSON.stringify({ lastSync: today, games: r.games }, null, 2) + "\n";
+        const before = await Deno.readTextFile(file).catch(() => null);
+        const fileChanged = !args.dryRun && text !== before;
+        if (fileChanged) await Deno.writeTextFile(file, text);
         context.logger.info("{message}{dry}", { message, dry: args.dryRun ? " (dry run)" : "" });
         const handle = await context.writeResource("summary", "summary", {
           message,
@@ -125,6 +128,7 @@ export const model = {
           updated: r.updated.length,
           gone: r.gone.length,
           dryRun: args.dryRun,
+          fileChanged,
         });
         return { dataHandles: [handle] };
       },

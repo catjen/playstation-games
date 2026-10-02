@@ -95,7 +95,7 @@ jobs:
           - step: write
             condition:
               type: succeeded
-        guard: '${{ inputs.dryRun ? "dry run" : "" }}'
+        guard: '${{ data.latest("gamelist", "summary").attributes.fileChanged ? "" : "no change to commit" }}'
         task:
           type: model_method
           modelIdOrName: git
