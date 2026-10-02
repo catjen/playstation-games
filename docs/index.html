@@ -83,7 +83,9 @@
     tr.game:not(.open) td[data-label] { display: none; }
     tr.game.open td.summary { display: none; }
     tr.game td.summary, tr.game td.more { display: block; }
-    td.summary .genres { color: var(--muted); font-size: 13px; }
+    /* One line; the full list is under Genres when the card is opened. */
+    td.summary .genres { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    tr.game > td.summary { min-inline-size: 0; }
     /* A small arrow in the corner instead of a More line keeps cards low; the
        whole card is tappable too. */
     tr.game > td.more { grid-column: 3; grid-row: 1; padding: 0; }
