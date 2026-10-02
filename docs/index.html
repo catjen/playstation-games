@@ -53,24 +53,32 @@
   .stale { margin: 0 0 12px; padding: 10px 12px; border-radius: 8px; background: var(--stale-bg); color: var(--stale-fg); }
   .stale code { font-size: 13px; }
 
-  /* Narrow: one card per game, each value labelled. */
+  /* Narrow: one card per game - cover on the left, the deciding facts beside it,
+     everything else behind More. */
   @container (width < 700px) {
     table, thead, tbody, tr, th, td { display: block; }
     thead { display: none; }
-    tr.game { border: 1px solid var(--line); border-radius: 8px; margin: 0 12px 12px; padding: 4px 0; }
+    tr.game {
+      display: grid; grid-template-columns: 72px 1fr; column-gap: 12px; align-items: start;
+      border: 1px solid var(--line); border-radius: 10px; margin: 0 12px 12px; padding: 10px 12px;
+    }
     tr.desc { margin: -8px 12px 12px; }
-    tr.game td, tr.game th { border: 0; padding: 4px 12px; }
-    tr.game td.cover { float: inline-start; padding-inline-end: 0; }
+    tr.game > th, tr.game > td { grid-column: 2; border: 0; padding: 2px 0; }
+    tr.game > td.cover { grid-column: 1; grid-row: 1 / span 20; padding: 0; }
+    tr.game td.cover img { inline-size: 72px; block-size: 72px; border-radius: 6px; }
+    tr.game > th { font-size: 16px; }
     tr.game td[data-label]::before {
       content: attr(data-label) ": " / attr(data-label);
       color: var(--muted);
     }
-    /* Closed cards show only cover, title, PS Plus tag, year and couch co-op. */
-    tr.game:not(.open) td[data-label]:not(.key) { display: none; }
-    tr.game td.more { display: block; clear: both; }
+    tr.game:not(.open) td[data-label] { display: none; }
+    tr.game.open td.summary { display: none; }
+    tr.game td.summary, tr.game td.more { display: block; }
+    td.summary .genres { color: var(--muted); font-size: 13px; }
+    tr.game td.more { padding-block-start: 6px; }
     td.more button { font: inherit; font-size: 13px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); cursor: pointer; }
   }
-  td.more { display: none; }
+  td.summary, td.more { display: none; }
 </style>
 </head>
 <body>
@@ -188,8 +196,9 @@ function row(g) {
     <tr class="game${g.access === "gone" ? " gone" : ""}${open === g.id ? " open" : ""}">
       <td class="cover">${g.coverUrl ? `<button type="button" data-cover="${esc(g.coverUrl)}" aria-label="Show cover of ${esc(g.title)}"><img loading="lazy" alt="" src="${esc(thumb(g.coverUrl))}"></button>` : ""}</td>
       <th scope="row"><button type="button" data-id="${esc(g.id)}" aria-expanded="${open === g.id}">${esc(g.title)}</button>${tags}</th>
-      <td data-label="Year" class="key">${esc(g.releaseYear ?? "?")}</td>
-      <td data-label="Couch co-op" class="key">${withMax(g.couchCoop, g.couchCoopMax)}</td>
+      <td class="summary">${esc(g.releaseYear ?? "?")} &middot; Couch co-op: ${withMax(g.couchCoop, g.couchCoopMax)}<div class="genres">${esc((g.genres || ["?"]).join(", "))}</div></td>
+      <td data-label="Year">${esc(g.releaseYear ?? "?")}</td>
+      <td data-label="Couch co-op">${withMax(g.couchCoop, g.couchCoopMax)}</td>
       <td data-label="Genres">${esc((g.genres || ["?"]).join(", "))}</td>
       <td data-label="Platform">${esc((g.platforms || []).join(", "))}</td>
       <td data-label="Age" class="nowrap">${esc(g.ageRating ?? "?")}</td>
