@@ -8,9 +8,10 @@
   :root {
     color-scheme: light dark;
     --bg: #ffffff; --fg: #1a1a1a; --muted: #636363; --line: #e3e3e3; --chip: #eef2f9; --head: #f7f7f7;
+    --stale-bg: #fde8e8; --stale-fg: #8a1414;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #121417; --fg: #e8e8e8; --muted: #a0a0a0; --line: #2c3036; --chip: #1f252d; --head: #181b1f; }
+    :root { --bg: #121417; --fg: #e8e8e8; --muted: #a0a0a0; --line: #2c3036; --chip: #1f252d; --head: #181b1f; --stale-bg: #3a1717; --stale-fg: #ffb4b4; }
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.4 system-ui, sans-serif; }
@@ -40,6 +41,9 @@
   img { inline-size: 40px; block-size: 40px; object-fit: cover; border-radius: 4px; display: block; }
   .tag { display: inline-block; margin-inline-start: 4px; padding: 1px 6px; border-radius: 4px; background: var(--chip); font-size: 12px; font-weight: 400; }
   tr.gone { opacity: 0.55; }
+  .sync { color: var(--muted); font-size: 13px; margin: -6px 0 12px; }
+  .stale { margin: 0 0 12px; padding: 10px 12px; border-radius: 8px; background: var(--stale-bg); color: var(--stale-fg); }
+  .stale code { font-size: 13px; }
 
   /* Narrow: one card per game, each value labelled. */
   @container (width < 700px) {
@@ -59,6 +63,12 @@
 <body>
 <header>
   <h1>PlayStation Games</h1>
+  <p class="sync" id="sync"></p>
+  <div class="stale" id="stale" role="alert" hidden>
+    The list has not been updated since <strong id="stale-date"></strong>. The monthly sync has probably
+    stopped because the PlayStation login has expired. Renew it on the PC that runs the sync:
+    <code>pwsh -File scripts/renew-psn.ps1</code> in the repo folder.
+  </div>
   <div class="filters">
     <input type="search" id="q" placeholder="Search title" aria-label="Search title">
     <select id="access" aria-label="Access">
@@ -188,7 +198,19 @@ $("rows").addEventListener("click", (e) => {
 });
 ["q", "access", "platform", "couch", "online", "solo"].forEach((id) => $(id).addEventListener("input", render));
 
-fetch(src).then((r) => r.json()).then((d) => { games = d.games; render(); })
+// Over 40 days means at least one monthly run has been missed.
+const STALE_DAYS = 40;
+function showSync(lastSync) {
+  if (!lastSync) return;
+  $("sync").textContent = `Updated ${lastSync}`;
+  const days = (Date.now() - Date.parse(`${lastSync}T00:00:00Z`)) / 86400000;
+  if (days > STALE_DAYS) {
+    $("stale-date").textContent = lastSync;
+    $("stale").hidden = false;
+  }
+}
+
+fetch(src).then((r) => r.json()).then((d) => { games = d.games; showSync(d.lastSync); render(); })
   .catch(() => { $("count").textContent = "Could not load the game list."; });
 </script>
 </body>

@@ -1,0 +1,119 @@
+id: 857982a5-b94a-45c2-a798-5e1a19954d4b
+name: monthly-sync
+description: Read the PSN library, add new games with store and IGDB details to docs/games.json, commit and push.
+version: 1
+tags: {}
+inputs:
+  properties:
+    mode:
+      type: string
+      enum: ["new", "rebuild"]
+      default: "new"
+      description: "new: details only for games not in the list; rebuild: details for every game"
+    dryRun:
+      type: boolean
+      default: false
+      description: Report what would change without writing, committing or pushing
+  required: []
+jobs:
+  - name: sync
+    steps:
+      - name: library
+        task:
+          type: model_method
+          modelIdOrName: psn
+          methodName: library
+          inputs:
+            npsso: ${{ vault.get("games", "psn-npsso") }}
+      - name: plan
+        dependsOn:
+          - step: library
+            condition:
+              type: succeeded
+        task:
+          type: model_method
+          modelIdOrName: gamelist
+          methodName: plan
+          inputs:
+            entitlements: ${{ data.latest("psn", "library").attributes.entitlements }}
+            mode: ${{ inputs.mode }}
+      - name: store
+        dependsOn:
+          - step: plan
+            condition:
+              type: succeeded
+        task:
+          type: model_method
+          modelIdOrName: psn
+          methodName: details
+          inputs:
+            productIds: ${{ data.latest("gamelist", "plan").attributes.productIds }}
+      - name: group
+        dependsOn:
+          - step: store
+            condition:
+              type: succeeded
+        task:
+          type: model_method
+          modelIdOrName: gamelist
+          methodName: group
+          inputs:
+            entitlements: ${{ data.latest("psn", "library").attributes.entitlements }}
+            products: ${{ data.latest("psn", "store").attributes.products }}
+            mode: ${{ inputs.mode }}
+      - name: igdb
+        dependsOn:
+          - step: group
+            condition:
+              type: succeeded
+        task:
+          type: model_method
+          modelIdOrName: igdb
+          methodName: details
+          inputs:
+            clientId: ${{ vault.get("games", "igdb-client-id") }}
+            clientSecret: ${{ vault.get("games", "igdb-client-secret") }}
+            ids: ${{ data.latest("gamelist", "grouped").attributes.ids }}
+            games: ${{ data.latest("gamelist", "grouped").attributes.games }}
+            store: ${{ data.latest("gamelist", "grouped").attributes.store }}
+      - name: write
+        dependsOn:
+          - step: igdb
+            condition:
+              type: succeeded
+        task:
+          type: model_method
+          modelIdOrName: gamelist
+          methodName: write
+          inputs:
+            games: ${{ data.latest("gamelist", "grouped").attributes.games }}
+            store: ${{ data.latest("gamelist", "grouped").attributes.store }}
+            igdb: ${{ data.latest("igdb", "igdb").attributes.details }}
+            dryRun: ${{ inputs.dryRun }}
+      - name: commit
+        dependsOn:
+          - step: write
+            condition:
+              type: succeeded
+        guard: '${{ inputs.dryRun ? "dry run" : "" }}'
+        task:
+          type: model_method
+          modelIdOrName: git
+          methodName: commit
+          inputs:
+            paths: ["docs/games.json"]
+            message: ${{ data.latest("gamelist", "summary").attributes.message }}
+      # Runs after a skipped or failed commit too, so a commit left behind by an
+      # earlier failed push goes out with the next run.
+      - name: push
+        dependsOn:
+          - step: commit
+            condition:
+              type: completed
+        guard: '${{ inputs.dryRun ? "dry run" : "" }}'
+        task:
+          type: model_method
+          modelIdOrName: git
+          methodName: push
+          inputs:
+            branch: main
