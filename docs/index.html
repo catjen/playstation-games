@@ -39,6 +39,14 @@
   tbody th button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
   tr.desc td { color: var(--muted); background: var(--chip); }
   img { inline-size: 40px; block-size: 40px; object-fit: cover; border-radius: 4px; display: block; }
+  td.cover button { all: unset; cursor: zoom-in; display: block; }
+  td.cover button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+  td.nowrap { white-space: nowrap; }
+  tr.desc a { margin-inline-end: 16px; }
+  .links { margin-block-start: 8px; }
+  dialog { padding: 0; border: 0; border-radius: 8px; background: transparent; max-inline-size: 92vw; max-block-size: 92dvh; }
+  dialog::backdrop { background: rgb(0 0 0 / 0.75); }
+  dialog img { inline-size: auto; block-size: auto; max-inline-size: 92vw; max-block-size: 92dvh; border-radius: 8px; cursor: zoom-out; }
   .tag { display: inline-block; margin-inline-start: 4px; padding: 1px 6px; border-radius: 4px; background: var(--chip); font-size: 12px; font-weight: 400; }
   tr.gone { opacity: 0.55; }
   .sync { color: var(--muted); font-size: 13px; margin: -6px 0 12px; }
@@ -101,22 +109,24 @@
     <thead>
       <tr>
         <td></td>
-        <th scope="col" data-k="title"><button type="button">Title</button></th>
+        <th scope="col" data-k="title" title="Click a title for its description and links"><button type="button">Title</button></th>
         <th scope="col" data-k="platforms"><button type="button">Platform</button></th>
         <th scope="col" data-k="releaseYear"><button type="button">Year</button></th>
         <th scope="col" data-k="ageRating"><button type="button">Age</button></th>
-        <th scope="col" data-k="soloStory"><button type="button">Solo</button></th>
-        <th scope="col" data-k="couchCoopMax"><button type="button">Couch co-op</button></th>
-        <th scope="col" data-k="couchVersusMax"><button type="button">Couch versus</button></th>
-        <th scope="col" data-k="onlineCoop"><button type="button">Online co-op</button></th>
-        <th scope="col" data-k="onlineVersus"><button type="button">Online versus</button></th>
+        <th scope="col" data-k="soloStory" title="Has a story you can play through alone"><button type="button">Solo</button></th>
+        <th scope="col" data-k="couchCoopMax" title="Play together on one console (max players)"><button type="button">Couch co-op</button></th>
+        <th scope="col" data-k="couchVersusMax" title="Play against each other on one console (max players)"><button type="button">Couch versus</button></th>
+        <th scope="col" data-k="onlineCoop" title="Play together over the internet (max players)"><button type="button">Online co-op</button></th>
+        <th scope="col" data-k="onlineVersus" title="Play against others over the internet (max players)"><button type="button">Online versus</button></th>
+        <th scope="col" data-k="localPlayers" title="Players on one console / over the internet, from the PlayStation Store"><button type="button">Players</button></th>
         <th scope="col" data-k="genres"><button type="button">Genres</button></th>
-        <th scope="col" data-k="addedOn" aria-sort="descending"><button type="button">Added</button></th>
+        <th scope="col" data-k="addedOn" aria-sort="descending" title="When the game first appeared in this list (the first import is all one date)"><button type="button">Added</button></th>
       </tr>
     </thead>
     <tbody id="rows"></tbody>
   </table>
 </div>
+<dialog id="cover" aria-label="Cover art"><img id="cover-img" alt=""></dialog>
 <script>
 // Only a plain file name in this folder: a crafted link must not load someone else's list.
 const asked = new URLSearchParams(location.search).get("src");
@@ -126,6 +136,18 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const yn = (v) => v === null || v === undefined ? "?" : v ? "Yes" : "No";
 const withMax = (v, max) => v === null || v === undefined ? "?" : v ? (max ? `Yes (${esc(max)})` : "Yes") : "No";
+const players = (g) =>
+  g.localPlayers == null && g.onlinePlayers == null ? "?" : `${esc(g.localPlayers ?? "?")} / ${esc(g.onlinePlayers ?? "?")}`;
+// Sony's image service resizes on request; the list shows 40px thumbnails.
+const SONY_IMG = "https://image.api.playstation.com/";
+const thumb = (url) => url.startsWith(SONY_IMG) ? `${url}${url.includes("?") ? "&" : "?"}w=96` : url;
+function links(g) {
+  const concept = /^concept:(\d+)$/.exec(g.id);
+  const out = [];
+  if (concept) out.push(`<a href="https://store.playstation.com/en-no/concept/${concept[1]}" target="_blank" rel="noopener">PlayStation Store</a>`);
+  if (typeof g.igdbUrl === "string" && g.igdbUrl.startsWith("https://www.igdb.com/")) out.push(`<a href="${esc(g.igdbUrl)}" target="_blank" rel="noopener">IGDB</a>`);
+  return out.length ? `<div class="links">${out.join("")}</div>` : "";
+}
 
 function keep(g) {
   const a = $("access").value;
@@ -137,7 +159,7 @@ function keep(g) {
   const c = $("couch").value;
   if (c === "coop" && !g.couchCoop) return false;
   if (c === "versus" && !g.couchVersus) return false;
-  if (c === "any" && !g.couchCoop && !g.couchVersus) return false;
+  if (c === "any" && !g.couchCoop && !g.couchVersus && !(g.localPlayers >= 2)) return false;
   const o = $("online").value;
   if (o === "coop" && !g.onlineCoop) return false;
   if (o === "versus" && !g.onlineVersus) return false;
@@ -159,20 +181,21 @@ function row(g) {
     (g.access === "gone" ? `<span class="tag">Gone ${esc(g.goneOn || "")}</span>` : "");
   return `
     <tr class="game${g.access === "gone" ? " gone" : ""}">
-      <td class="cover">${g.coverUrl ? `<img loading="lazy" alt="" src="${esc(g.coverUrl)}">` : ""}</td>
+      <td class="cover">${g.coverUrl ? `<button type="button" data-cover="${esc(g.coverUrl)}" aria-label="Show cover of ${esc(g.title)}"><img loading="lazy" alt="" src="${esc(thumb(g.coverUrl))}"></button>` : ""}</td>
       <th scope="row"><button type="button" data-id="${esc(g.id)}" aria-expanded="${open === g.id}">${esc(g.title)}</button>${tags}</th>
       <td data-label="Platform">${esc((g.platforms || []).join(", "))}</td>
       <td data-label="Year">${esc(g.releaseYear ?? "?")}</td>
-      <td data-label="Age">${esc(g.ageRating ?? "?")}</td>
+      <td data-label="Age" class="nowrap">${esc(g.ageRating ?? "?")}</td>
       <td data-label="Solo story">${yn(g.soloStory)}</td>
       <td data-label="Couch co-op">${withMax(g.couchCoop, g.couchCoopMax)}</td>
       <td data-label="Couch versus">${withMax(g.couchVersus, g.couchVersusMax)}</td>
       <td data-label="Online co-op">${withMax(g.onlineCoop, g.onlineCoopMax)}</td>
       <td data-label="Online versus">${withMax(g.onlineVersus, g.onlineVersusMax)}</td>
+      <td data-label="Players (local / online)">${players(g)}</td>
       <td data-label="Genres">${esc((g.genres || ["?"]).join(", "))}</td>
-      <td data-label="Added">${esc(g.addedOn)}</td>
+      <td data-label="Added" class="nowrap">${esc(g.addedOn)}</td>
     </tr>
-    ${open === g.id ? `<tr class="desc"><td colspan="12">${esc(g.description ?? "No description.")}</td></tr>` : ""}`;
+    ${open === g.id ? `<tr class="desc"><td colspan="13">${esc(g.description ?? "No description.")}${links(g)}</td></tr>` : ""}`;
 }
 
 function render() {
@@ -190,12 +213,20 @@ document.querySelectorAll("thead th[data-k]").forEach((th) => th.querySelector("
   render();
 }));
 $("rows").addEventListener("click", (e) => {
+  const c = e.target.closest("button[data-cover]");
+  if (c) {
+    $("cover-img").src = c.dataset.cover;
+    $("cover").showModal();
+    return;
+  }
   const b = e.target.closest("button[data-id]");
   if (!b) return;
   open = open === b.dataset.id ? null : b.dataset.id;
   render();
   document.querySelector(`button[data-id="${CSS.escape(b.dataset.id)}"]`)?.focus();
 });
+// A click anywhere on the open cover (or its backdrop) closes it; Esc works natively.
+$("cover").addEventListener("click", () => $("cover").close());
 ["q", "access", "platform", "couch", "online", "solo"].forEach((id) => $(id).addEventListener("input", render));
 
 // Over 40 days means at least one monthly run has been missed.
