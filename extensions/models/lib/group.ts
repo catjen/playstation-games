@@ -11,6 +11,8 @@ export function groupLibrary(a: {
   entitlements: Entitlement[];
   existing: GameRecord[];
   products: StoreProduct[];
+  // Products the store step was asked for; one missing from `products` failed.
+  planned?: string[];
   mode: Mode;
 }): { games: LibraryGame[]; ids: string[]; store: StoreDetails[] } {
   const productById = new Map(a.products.map((p) => [p.productId, p]));
@@ -20,7 +22,13 @@ export function groupLibrary(a: {
     for (const p of g.productIds) conceptFromList.set(p, g.id.slice("concept:".length));
   }
 
+  const knownProducts = new Set(a.existing.flatMap((g) => g.productIds));
+  const failed = new Set((a.planned ?? []).filter((id) => !productById.has(id)));
+
   const kept = a.entitlements.filter((e) => {
+    // A new product whose lookup failed is treated as not seen yet: writing it
+    // would mark it known, and new mode would never look it up again.
+    if (failed.has(e.productId) && !knownProducts.has(e.productId)) return false;
     const p = productById.get(e.productId);
     if (p?.listed) return p.kind !== "other";
     if (p && !p.listed) return !NOT_A_GAME.test(e.name) && !APPS.test(e.name);
@@ -32,8 +40,10 @@ export function groupLibrary(a: {
     (e) => productById.get(e.productId)?.conceptId ?? conceptFromList.get(e.productId) ?? null,
   );
 
-  const known = new Set(a.existing.map((g) => g.id));
-  const ids = a.mode === "rebuild" ? games.map((g) => g.id) : games.filter((g) => !known.has(g.id)).map((g) => g.id);
+  // New mode also retries known games IGDB has not matched yet, so a failed or
+  // missing IGDB answer is not permanent.
+  const matched = new Set(a.existing.filter((g) => g.igdbId !== null).map((g) => g.id));
+  const ids = a.mode === "rebuild" ? games.map((g) => g.id) : games.filter((g) => !matched.has(g.id)).map((g) => g.id);
 
   const store: StoreDetails[] = [];
   for (const g of games) {

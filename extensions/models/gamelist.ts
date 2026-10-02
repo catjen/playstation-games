@@ -35,7 +35,7 @@ const listPath = (context: any) => `${context.repoDir}/${context.globalArgs.path
 
 export const model = {
   type: "@catjen/gamelist",
-  version: "2026.10.02.3",
+  version: "2026.10.02.4",
   globalArguments: Global,
   resources: {
     plan: {
@@ -87,10 +87,14 @@ export const model = {
       arguments: z.object({
         entitlements: z.array(EntitlementSchema),
         products: z.array(StoreProductSchema),
+        planned: z.array(z.string()).default([]),
         mode: ModeSchema,
       }),
-      // deno-lint-ignore no-explicit-any
-      execute: async (args: { entitlements: Entitlement[]; products: StoreProduct[]; mode: Mode }, context: any) => {
+      execute: async (
+        args: { entitlements: Entitlement[]; products: StoreProduct[]; planned?: string[]; mode: Mode },
+        // deno-lint-ignore no-explicit-any
+        context: any,
+      ) => {
         const existing = await readList(listPath(context));
         const r = groupLibrary({ ...args, existing });
         context.logger.info("{games} games, {ids} need details", { games: r.games.length, ids: r.ids.length });

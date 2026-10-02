@@ -1,4 +1,5 @@
 import { z } from "npm:zod@4";
+import { tooManyFailures } from "./lib/failures.ts";
 import { createIgdb, GAME_FIELDS } from "./lib/igdb_client.ts";
 import { mapIgdb } from "./lib/igdb_map.ts";
 import { type IgdbGame, pickIgdbMatch } from "./lib/match.ts";
@@ -90,6 +91,10 @@ export const model = {
               error: (err as Error).message,
             });
           }
+        }
+        const asked = args.ids.filter((id) => gameById.has(id)).length;
+        if (tooManyFailures(asked - details.length, asked)) {
+          throw new Error(`${asked - details.length} of ${asked} IGDB lookups failed; IGDB may be down. Nothing was written.`);
         }
         context.logger.info("IGDB matched {matched} of {total}", {
           matched: details.filter((d) => d.igdbId !== null).length,

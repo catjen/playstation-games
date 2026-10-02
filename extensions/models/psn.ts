@@ -1,5 +1,6 @@
 import { z } from "npm:zod@4";
 import { exchangeAccessCodeForAuthTokens, exchangeNpssoForAccessCode } from "npm:psn-api@2.18.1";
+import { tooManyFailures } from "./lib/failures.ts";
 import { fetchAllEntitlements } from "./lib/psn_library.ts";
 import { fetchProductPage } from "./lib/store_client.ts";
 import { extractProduct, mapProduct } from "./lib/store_map.ts";
@@ -96,6 +97,10 @@ export const model = {
           } catch (err) {
             context.logger.warning("Store lookup failed for {id}: {error}", { id, error: (err as Error).message });
           }
+        }
+        const failedCount = args.productIds.length - products.length;
+        if (tooManyFailures(failedCount, args.productIds.length)) {
+          throw new Error(`${failedCount} of ${args.productIds.length} store lookups failed; the store may be down or changed. Nothing was written.`);
         }
         context.logger.info("Store: {listed} listed, {unlisted} not on the store, {failed} failed", {
           listed: products.filter((p) => p.listed).length,

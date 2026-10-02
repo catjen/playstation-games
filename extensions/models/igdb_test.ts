@@ -1,4 +1,4 @@
-import { assertEquals } from "@std/assert";
+import { assertEquals, assertRejects } from "@std/assert";
 import { createModelTestContext } from "@swamp-club/swamp-testing";
 import { model } from "./igdb.ts";
 import type { IgdbDetails } from "./lib/schemas.ts";
@@ -92,4 +92,26 @@ Deno.test("a failed lookup is left out rather than written as unknown", async ()
   }, context);
   assertEquals(igdbOut(getWrittenResources()), []);
   assertEquals(getLogsByLevel("warning").length, 1);
+});
+
+Deno.test("details fails and writes nothing when IGDB is mostly failing", async () => {
+  const { context, getWrittenResources } = createModelTestContext({ methodName: "details" });
+  const ids = Array.from({ length: 10 }, (_, i) => `concept:${i}`);
+  await assertRejects(
+    () =>
+      model.methods.details.execute({
+        clientId: "c",
+        clientSecret: "s",
+        ids,
+        games: ids.map((id) => game(id, `G ${id}`)),
+        store: [],
+        _igdb: {
+          post: (endpoint: string) =>
+            endpoint === "external_game_sources" ? Promise.resolve([]) : Promise.reject(new Error("429")),
+        },
+      }, context),
+    Error,
+    "IGDB lookups failed",
+  );
+  assertEquals(getWrittenResources().length, 0);
 });

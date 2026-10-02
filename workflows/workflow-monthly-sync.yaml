@@ -60,6 +60,7 @@ jobs:
           inputs:
             entitlements: ${{ data.latest("psn", "library").attributes.entitlements }}
             products: ${{ data.latest("psn", "store").attributes.products }}
+            planned: ${{ data.latest("gamelist", "plan").attributes.productIds }}
             mode: ${{ inputs.mode }}
       - name: igdb
         dependsOn:

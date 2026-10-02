@@ -128,3 +128,15 @@ Deno.test("a dry run never reports the file as changed", async () => {
   const c = await write(dir, [lib("concept:1")], { dryRun: true });
   assertEquals(out(c.getWrittenResources(), "summary").fileChanged, false);
 });
+
+Deno.test("group leaves out a new product whose store lookup failed", async () => {
+  const dir = await repo(null);
+  const { context, getWrittenResources } = createModelTestContext(opts("group", dir));
+  await model.methods.group.execute({
+    entitlements: [ent("A"), ent("B")],
+    products: [product("B", "7")],
+    planned: ["A", "B"],
+    mode: "new",
+  }, context);
+  assertEquals((out(getWrittenResources(), "grouped").games as { id: string }[]).map((x) => x.id), ["concept:7"]);
+});

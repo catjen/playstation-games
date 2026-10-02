@@ -77,3 +77,24 @@ Deno.test("an NPSSO with a trailing line break from a pipe is accepted and trimm
   }, context);
   assertEquals(used, token);
 });
+
+Deno.test("details fails and writes nothing when the store is mostly failing", async () => {
+  const { context, getWrittenResources } = createModelTestContext({ methodName: "details" });
+  const ids = Array.from({ length: 10 }, (_, i) => `P${i}`);
+  await assertRejects(
+    () => model.methods.details.execute({ productIds: ids, _store: () => Promise.reject(new Error("503")) }, context),
+    Error,
+    "store lookups failed",
+  );
+  assertEquals(getWrittenResources().length, 0);
+});
+
+Deno.test("details tolerates a few failed lookups", async () => {
+  const { context, getWrittenResources } = createModelTestContext({ methodName: "details" });
+  const ids = Array.from({ length: 30 }, (_, i) => `P${i}`);
+  await model.methods.details.execute({
+    productIds: ids,
+    _store: (id: string) => Number(id.slice(1)) < 6 ? Promise.reject(new Error("503")) : Promise.resolve(pageFor(WOBBLY)),
+  }, context);
+  assertEquals((out(getWrittenResources(), "store").products as unknown[]).length, 24);
+});

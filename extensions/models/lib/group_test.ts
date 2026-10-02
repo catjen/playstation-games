@@ -49,7 +49,7 @@ Deno.test("PS4 and PS5 copies with the same store concept become one game", () =
 Deno.test("a product looked up earlier takes its concept from the list", () => {
   const r = groupLibrary({
     entitlements: [ent("A", { platform: "PS4" }), ent("B", { platform: "PS5" })],
-    existing: [rec("concept:77", ["A"])],
+    existing: [{ ...rec("concept:77", ["A"]), igdbId: 5 }],
     products: [product("B", "77")],
     mode: "new",
   });
@@ -83,9 +83,49 @@ Deno.test("an unlisted product with a game name stays, keyed by its name", () =>
   assertEquals(r.games.map((g) => g.id), ["title:old-delisted-racer"]);
 });
 
-Deno.test("a product whose lookup failed stays, keyed by its name", () => {
-  const r = groupLibrary({ entitlements: [ent("A", { name: "Lost Game" })], existing: [], products: [], mode: "new" });
-  assertEquals(r.games.map((g) => g.id), ["title:lost-game"]);
+Deno.test("a new product whose lookup failed is left out, so the next run retries it", () => {
+  const r = groupLibrary({
+    entitlements: [ent("A", { name: "Lost Game" }), ent("B")],
+    existing: [],
+    products: [product("B", "8")],
+    planned: ["A", "B"],
+    mode: "new",
+  });
+  assertEquals(r.games.map((g) => g.id), ["concept:8"]);
+});
+
+Deno.test("a failed lookup does not split a game whose other copy is known", () => {
+  const r = groupLibrary({
+    entitlements: [ent("A", { platform: "PS4" }), ent("B", { platform: "PS5" })],
+    existing: [rec("concept:8", ["A"])],
+    products: [],
+    planned: ["B"],
+    mode: "new",
+  });
+  assertEquals(r.games.map((g) => [g.id, g.platforms]), [["concept:8", ["PS4"]]]);
+});
+
+Deno.test("a known product whose lookup failed in a rebuild keeps its game", () => {
+  const r = groupLibrary({
+    entitlements: [ent("A")],
+    existing: [rec("concept:8", ["A"])],
+    products: [],
+    planned: ["A"],
+    mode: "rebuild",
+  });
+  assertEquals(r.games.map((g) => g.id), ["concept:8"]);
+});
+
+Deno.test("a known game IGDB could not match is asked again in new mode", () => {
+  const matched = { ...rec("concept:1", ["A"]), igdbId: 5 };
+  const unmatched = rec("concept:2", ["B"]);
+  const r = groupLibrary({
+    entitlements: [ent("A"), ent("B")],
+    existing: [matched, unmatched],
+    products: [],
+    mode: "new",
+  });
+  assertEquals(r.ids, ["concept:2"]);
 });
 
 Deno.test("store details for a game come from its first listed game product", () => {
