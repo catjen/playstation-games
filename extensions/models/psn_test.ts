@@ -1,6 +1,6 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import { createModelTestContext } from "@swamp-club/swamp-testing";
-import { model, RENEW_STEPS } from "./psn.ts";
+import { model, NpssoArgs, RENEW_STEPS } from "./psn.ts";
 import type { Entitlement, StoreProduct } from "./lib/schemas.ts";
 
 type Written = { specName: string; data: Record<string, unknown> }[];
@@ -64,4 +64,16 @@ Deno.test("check logs in and writes nothing", async () => {
     _client: { login: () => Promise.resolve({ accessToken: "acc" }), entitlements: () => Promise.resolve([]) },
   }, context);
   assertEquals(getWrittenResources().length, 0);
+});
+
+Deno.test("an NPSSO with a trailing line break from a pipe is accepted and trimmed", async () => {
+  const token = "n".repeat(64);
+  assertEquals(NpssoArgs.parse({ npsso: `${token}\r\n` }).npsso, token);
+  let used = "";
+  const { context } = createModelTestContext({ methodName: "check" });
+  await model.methods.check.execute({
+    npsso: `${token}\r\n`,
+    _client: { login: (n: string) => { used = n; return Promise.resolve({ accessToken: "acc" }); }, entitlements: () => Promise.resolve([]) },
+  }, context);
+  assertEquals(used, token);
 });

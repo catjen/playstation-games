@@ -30,13 +30,14 @@ const liveStore = async (productId: string) => {
 
 async function login(client: Client, npsso: string) {
   try {
-    return await client.login(npsso);
+    return await client.login(npsso.trim());
   } catch (err) {
     throw new Error(`${RENEW_STEPS} (cause: ${(err as Error).message})`);
   }
 }
 
-const NpssoArgs = z.object({ npsso: z.string().length(64) });
+// Piping the token into `swamp vault put` from PowerShell stores a trailing line break.
+export const NpssoArgs = z.object({ npsso: z.string().trim().length(64) });
 
 export const model = {
   type: "@catjen/psn",
