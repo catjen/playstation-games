@@ -1,0 +1,63 @@
+export interface IgdbMultiplayerMode {
+  platform?: number;
+  offlinecoop?: boolean;
+  offlinecoopmax?: number;
+  offlinemax?: number;
+  onlinecoop?: boolean;
+  onlinecoopmax?: number;
+  onlinemax?: number;
+  splitscreen?: boolean;
+}
+
+export interface IgdbGame {
+  id: number;
+  name: string;
+  first_release_date?: number;
+  genres?: { name: string }[];
+  game_modes?: { name: string }[];
+  multiplayer_modes?: IgdbMultiplayerMode[];
+  external_games?: { uid?: string; external_game_source?: number }[];
+}
+
+export type IgdbMatch = { game: IgdbGame; matchedBy: "psn-id" | "title-year" };
+
+const EDITION =
+  /\b(?:digital\s+)?(?:deluxe|gold|ultimate|complete|standard|definitive|special|anniversary|game of the year|goty|premium|launch|cross-gen|digital)\s+edition\b/g;
+const PLATFORMS = /\(?\bps[45](?:\s*(?:&|and|\/)\s*ps[45])?\b\)?/g;
+
+export function normalizeTitle(t: string): string {
+  // Marks go first: NFKD would turn the trademark sign into the letters "TM".
+  return t
+    .replace(/[®™©]/g, "")
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(PLATFORMS, " ")
+    .replace(EDITION, " ")
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+const yearOf = (seconds: number) => new Date(seconds * 1000).getUTCFullYear();
+
+export function pickIgdbMatch(
+  candidates: IgdbGame[],
+  q: { title: string; releaseYear: number | null; psnUids: string[]; psnSourceIds: number[] },
+): IgdbMatch | null {
+  const linked = candidates.find((c) =>
+    c.external_games?.some((x) =>
+      x.uid !== undefined && x.external_game_source !== undefined &&
+      q.psnSourceIds.includes(x.external_game_source) && q.psnUids.includes(x.uid)
+    )
+  );
+  if (linked) return { game: linked, matchedBy: "psn-id" };
+  if (q.releaseYear === null) return null;
+  const year = q.releaseYear;
+  const want = normalizeTitle(q.title);
+  const hits = candidates.filter((c) =>
+    normalizeTitle(c.name) === want && c.first_release_date !== undefined &&
+    Math.abs(yearOf(c.first_release_date) - year) <= 1
+  );
+  return hits.length === 1 ? { game: hits[0], matchedBy: "title-year" } : null;
+}
