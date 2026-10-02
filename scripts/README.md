@@ -16,7 +16,9 @@ the sync at once so the list catches up.
 pwsh -File scripts/renew-psn.ps1
 ```
 
-It expects the token on the clipboard, put there by this bookmarklet. Create a
+It expects the token on the clipboard, put there by this bookmarklet. Open
+`scripts/bookmarks.html` in Chrome and drag both buttons to the bookmarks bar,
+or create a
 bookmark named "Kopier PSN token" with this as its URL (one line):
 
 ```

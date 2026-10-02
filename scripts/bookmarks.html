@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PSN bookmarks</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; padding: 24px 16px; font: 16px/1.5 system-ui, sans-serif; max-width: 640px; }
+  a.bm { display: inline-block; margin: 8px 12px 8px 0; padding: 10px 16px; border-radius: 8px;
+         background: #0050c8; color: #fff; text-decoration: none; font-weight: 600; cursor: grab; }
+  ol li { margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<h1>PSN-bokmerker</h1>
+<ol>
+  <li>Vis bokmerkelinjen i Chrome: Ctrl+Shift+B.</li>
+  <li>Dra hver av knappene under opp p&aring; bokmerkelinjen.</li>
+</ol>
+<p>
+  <a class="bm" href="https://ca.account.sony.com/api/v1/ssocookie">PSN token</a>
+  <a class="bm" href="javascript:(()=>{try{const v=JSON.parse(document.body.innerText).npsso;if(!v||v.length!==64)throw 0;navigator.clipboard.writeText(v).then(()=>alert('PSN token kopiert'),()=>prompt('Kopier denne:',v))}catch(e){alert('Fant ikke token. Logg inn paa playstation.com og last siden paa nytt.')}})()">Kopier PSN token</a>
+</p>
+<p>Bruk: kj&oslash;r <code>pwsh -File scripts/renew-psn.ps1</code>, klikk <b>Kopier PSN token</b> p&aring; Sony-siden som &aring;pnes, og trykk Enter i skriptet.</p>
+</body>
+</html>
