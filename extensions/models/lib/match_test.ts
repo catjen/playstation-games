@@ -5,9 +5,9 @@ const y = (year: number) => Date.UTC(year, 5, 1) / 1000;
 const q = { title: "Doom", releaseYear: 2016, psnUids: ["EP1-CUSA02092_00-DOOM"], psnSourceIds: [36] };
 
 Deno.test("edition names, platforms and trademark signs normalise away", () => {
-  assertEquals(normalizeTitle("Horizon Zero Dawn™ Complete Edition"), "horizon zero dawn");
+  assertEquals(normalizeTitle("Horizon Zero Dawn\u2122 Complete Edition"), "horizon zero dawn");
   assertEquals(normalizeTitle("It Takes Two PS4 & PS5"), "it takes two");
-  assertEquals(normalizeTitle("God of War Ragnarök Digital Deluxe Edition"), "god of war ragnarok");
+  assertEquals(normalizeTitle("God of War Ragnar\u00F6k Digital Deluxe Edition"), "god of war ragnarok");
   assertEquals(normalizeTitle("Marvel's Spider-Man: Miles Morales"), "marvel s spider man miles morales");
 });
 

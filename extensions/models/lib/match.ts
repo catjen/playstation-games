@@ -28,9 +28,9 @@ const PLATFORMS = /\(?\bps[45](?:\s*(?:&|and|\/)\s*ps[45])?\b\)?/g;
 export function normalizeTitle(t: string): string {
   // Marks go first: NFKD would turn the trademark sign into the letters "TM".
   return t
-    .replace(/[®™©]/g, "")
+    .replace(/[\u00AE\u2122\u00A9]/g, "")
     .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036F]/g, "")
     .toLowerCase()
     .replace(PLATFORMS, " ")
     .replace(EDITION, " ")

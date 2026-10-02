@@ -48,18 +48,19 @@ Deno.test("only PS Plus entitlements make the game claimed", () => {
   assertEquals(games[0].access, "claimed");
 });
 
-Deno.test("a null concept id groups by title id instead of being dropped", () => {
+Deno.test("without a concept, copies with the same name become one game keyed by the name", () => {
   const games = collapseEntitlements([
-    ent({ conceptId: null, titleId: "CUSA09999_00", name: "Old Game" }),
+    ent({ conceptId: null, titleId: "CUSA09999_00", name: "WWE 2K24", platform: "PS4" }),
+    ent({ conceptId: null, titleId: "PPSA09999_00", name: "WWE 2K24", platform: "PS5" }),
     ent({ conceptId: null, titleId: "CUSA08888_00", name: "Other Old Game" }),
   ]);
-  assertEquals(games.map((g) => g.id), ["title:CUSA09999_00", "title:CUSA08888_00"]);
+  assertEquals(games.map((g) => [g.id, g.platforms]), [["title:wwe-2k24", ["PS4", "PS5"]], ["title:other-old-game", ["PS4"]]]);
   assertEquals(games[0].conceptId, null);
 });
 
 Deno.test("trademark signs are stripped from titles", () => {
-  assertEquals(cleanTitle("Rocket League®"), "Rocket League");
-  assertEquals(cleanTitle("Horizon™  Zero Dawn"), "Horizon Zero Dawn");
+  assertEquals(cleanTitle("Rocket League\u00AE"), "Rocket League");
+  assertEquals(cleanTitle("Horizon\u2122  Zero Dawn"), "Horizon Zero Dawn");
 });
 
 Deno.test("Sony's order (newest activation first) is preserved", () => {

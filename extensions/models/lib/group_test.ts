@@ -71,19 +71,19 @@ Deno.test("unlisted demos, betas and streaming apps are dropped", () => {
   assertEquals(r.games, []);
 });
 
-Deno.test("an unlisted product with a game name stays, keyed by its title id", () => {
+Deno.test("an unlisted product with a game name stays, keyed by its name", () => {
   const r = groupLibrary({
     entitlements: [ent("A", { name: "Old Delisted Racer", titleId: "CUSA01234_00" })],
     existing: [],
     products: [unlisted("A")],
     mode: "new",
   });
-  assertEquals(r.games.map((g) => g.id), ["title:CUSA01234_00"]);
+  assertEquals(r.games.map((g) => g.id), ["title:old-delisted-racer"]);
 });
 
-Deno.test("a product whose lookup failed stays, keyed by its title id", () => {
-  const r = groupLibrary({ entitlements: [ent("A", { titleId: "CUSA9_00" })], existing: [], products: [], mode: "new" });
-  assertEquals(r.games.map((g) => g.id), ["title:CUSA9_00"]);
+Deno.test("a product whose lookup failed stays, keyed by its name", () => {
+  const r = groupLibrary({ entitlements: [ent("A", { name: "Lost Game" })], existing: [], products: [], mode: "new" });
+  assertEquals(r.games.map((g) => g.id), ["title:lost-game"]);
 });
 
 Deno.test("store details for a game come from its first listed game product", () => {

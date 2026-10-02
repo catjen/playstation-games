@@ -1,6 +1,7 @@
+import { normalizeTitle } from "./match.ts";
 import type { Entitlement, LibraryGame } from "./schemas.ts";
 
-const MARKS = /[®™©]/g;
+const MARKS = /[\u00AE\u2122\u00A9]/g;
 
 export function cleanTitle(name: string): string {
   return name.replace(MARKS, "").replace(/\s+/g, " ").trim();
@@ -16,7 +17,8 @@ export function collapseEntitlements(
   const concepts = new Map<string, string | null>();
   for (const e of entitlements) {
     const concept = conceptOf(e) ?? e.conceptId;
-    const key = concept ? `concept:${concept}` : `title:${e.titleId}`;
+    // Without a concept, the PS4 and PS5 copies only share their name.
+    const key = concept ? `concept:${concept}` : `title:${normalizeTitle(e.name).replace(/ /g, "-") || e.titleId}`;
     groups.set(key, [...(groups.get(key) ?? []), e]);
     concepts.set(key, concept);
   }
