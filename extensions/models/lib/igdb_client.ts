@@ -10,12 +10,22 @@ export function createIgdb(clientId: string, clientSecret: string, fetchFn: type
   return {
     async post(endpoint: string, body: string): Promise<unknown[]> {
       if (!token) {
-        const res = await fetchFn(
-          `https://id.twitch.tv/oauth2/token?client_id=${encodeURIComponent(clientId)}&client_secret=${
-            encodeURIComponent(clientSecret)
-          }&grant_type=client_credentials`,
-          { method: "POST" },
-        );
+        // Secret in the body, and fetch's own error (which quotes the request)
+        // never passed on, so the secret cannot reach a log.
+        let res: Response;
+        try {
+          res = await fetchFn("https://id.twitch.tv/oauth2/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              client_id: clientId,
+              client_secret: clientSecret,
+              grant_type: "client_credentials",
+            }).toString(),
+          });
+        } catch {
+          throw new Error("Twitch token request failed: network error");
+        }
         if (!res.ok) throw new Error(`Twitch token request failed with status ${res.status}`);
         token = (await res.json()).access_token;
       }
