@@ -69,6 +69,8 @@ export const IgdbDetailsSchema = z.object({
   onlineVersusMax: z.number().int().nullable(),
   genres: z.array(z.string()).nullable(),
   igdbId: z.number().int().nullable(),
+  // Default so lists written before this field existed still load.
+  igdbUrl: z.string().nullable().default(null),
   matchedBy: z.enum(["psn-id", "title-year", "title"]).nullable(),
 });
 export type IgdbDetails = z.infer<typeof IgdbDetailsSchema>;

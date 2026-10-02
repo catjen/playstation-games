@@ -57,6 +57,7 @@ function blank(lib: LibraryGame, today: string): GameRecord {
     onlineVersusMax: null,
     genres: null,
     igdbId: null,
+    igdbUrl: null,
     matchedBy: null,
   };
 }

@@ -46,6 +46,7 @@ export function mapIgdb(id: string, match: IgdbMatch | null): IgdbDetails {
     onlineVersusMax: null,
     genres: null,
     igdbId: null,
+    igdbUrl: null,
     matchedBy: null,
   };
   if (!match) return unknown;
@@ -56,6 +57,7 @@ export function mapIgdb(id: string, match: IgdbMatch | null): IgdbDetails {
     soloStory: modeNames ? modeNames.includes("Single player") : null,
     genres: g.genres ? g.genres.map((x) => x.name) : null,
     igdbId: g.id,
+    igdbUrl: g.url ?? null,
     matchedBy: match.matchedBy,
   };
   const mm = pickMode(g.multiplayer_modes);

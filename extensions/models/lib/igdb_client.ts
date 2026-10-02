@@ -1,5 +1,5 @@
 export const GAME_FIELDS =
-  "fields name,first_release_date,genres.name,game_modes.name,multiplayer_modes.*,external_games.uid,external_games.external_game_source;";
+  "fields name,url,first_release_date,genres.name,game_modes.name,multiplayer_modes.*,external_games.uid,external_games.external_game_source;";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

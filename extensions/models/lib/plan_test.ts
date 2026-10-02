@@ -22,7 +22,7 @@ function rec(id: string, productIds: string[], over: Partial<GameRecord> = {}): 
     localPlayers: null, onlinePlayers: null,
     soloStory: null, couchCoop: null, couchCoopMax: null, couchVersus: null, couchVersusMax: null,
     splitScreen: null, onlineCoop: null, onlineCoopMax: null, onlineVersus: null, onlineVersusMax: null,
-    genres: null, igdbId: null, matchedBy: null, ...over,
+    genres: null, igdbId: null, igdbUrl: null, matchedBy: null, ...over,
   };
 }
 

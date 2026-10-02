@@ -31,7 +31,7 @@ function rec(id: string, productIds: string[]): GameRecord {
     localPlayers: null, onlinePlayers: null,
     soloStory: null, couchCoop: null, couchCoopMax: null, couchVersus: null, couchVersusMax: null,
     splitScreen: null, onlineCoop: null, onlineCoopMax: null, onlineVersus: null, onlineVersusMax: null,
-    genres: null, igdbId: null, matchedBy: null,
+    genres: null, igdbId: null, igdbUrl: null, matchedBy: null,
   };
 }
 

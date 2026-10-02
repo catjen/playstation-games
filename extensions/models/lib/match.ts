@@ -12,6 +12,7 @@ export interface IgdbMultiplayerMode {
 export interface IgdbGame {
   id: number;
   name: string;
+  url?: string;
   first_release_date?: number;
   genres?: { name: string }[];
   game_modes?: { name: string }[];

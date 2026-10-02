@@ -47,6 +47,7 @@ function igdb(id: string, over: Partial<IgdbDetails> = {}): IgdbDetails {
     onlineVersusMax: null,
     genres: ["Adventure"],
     igdbId: 1,
+    igdbUrl: null,
     matchedBy: "psn-id",
     ...over,
   };

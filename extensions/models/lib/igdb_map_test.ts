@@ -76,3 +76,8 @@ Deno.test("genres are mapped to their names", () => {
     "Platform",
   ]);
 });
+
+Deno.test("the IGDB page address is kept for the link on the page", () => {
+  assertEquals(m({ id: 13, name: "X", url: "https://www.igdb.com/games/x" }).igdbUrl, "https://www.igdb.com/games/x");
+  assertEquals(mapIgdb("concept:1", null).igdbUrl, null);
+});
