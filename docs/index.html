@@ -25,7 +25,7 @@
   .filters input[type=search] { flex: 1 1 200px; }
   .count { color: var(--muted); margin-block-start: 8px; font-size: 13px; }
 
-  .table-wrapper { overflow: auto; max-block-size: calc(100dvh - 40px); container-type: inline-size; }
+  .table-wrapper { overflow: auto; max-block-size: calc(100dvh - 40px); }
   table { border-collapse: separate; border-spacing: 0; inline-size: 100%; }
   th, td { padding: 8px; border-block-end: 1px solid var(--line); text-align: start; vertical-align: middle; }
   thead { position: sticky; inset-block-start: 0; z-index: 1; background: var(--head); }
@@ -53,16 +53,25 @@
   .stale { margin: 0 0 12px; padding: 10px 12px; border-radius: 8px; background: var(--stale-bg); color: var(--stale-fg); }
   .stale code { font-size: 13px; }
 
-  /* Narrow: one card per game - cover on the left, the deciding facts beside it,
-     everything else behind More. */
-  @container (width < 700px) {
+  td.summary, td.more { display: none; }
+
+  /* Phones, upright or on their side (low screen): cards instead of the table.
+     Cover on the left, the deciding facts beside it, everything else behind More.
+     The page scrolls as a whole here; a list box scrolling inside the page is
+     clumsy on a touch screen. */
+  @media (max-width: 699px), (max-height: 520px) {
+    .table-wrapper { overflow: visible; max-block-size: none; }
     table, thead, tbody, tr, th, td { display: block; }
     thead { display: none; }
-    tr.game {
-      display: grid; grid-template-columns: 72px 1fr; column-gap: 12px; align-items: start;
-      border: 1px solid var(--line); border-radius: 10px; margin: 0 12px 12px; padding: 10px 12px;
+    tbody {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 12px; padding: 0 12px 12px;
     }
-    tr.desc { margin: -8px 12px 12px; }
+    tr.game {
+      display: grid; grid-template-columns: 72px 1fr; column-gap: 12px; align-items: start; align-content: start;
+      border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+    }
+    tr.desc { grid-column: 1 / -1; border-radius: 10px; overflow: hidden; }
     tr.game > th, tr.game > td { grid-column: 2; border: 0; padding: 2px 0; }
     tr.game > td.cover { grid-column: 1; grid-row: 1 / span 20; padding: 0; }
     tr.game td.cover img { inline-size: 72px; block-size: 72px; border-radius: 6px; }
@@ -78,7 +87,6 @@
     tr.game td.more { padding-block-start: 6px; }
     td.more button { font: inherit; font-size: 13px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); cursor: pointer; }
   }
-  td.summary, td.more { display: none; }
 </style>
 </head>
 <body>
