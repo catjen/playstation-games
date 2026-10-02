@@ -65,7 +65,12 @@
       content: attr(data-label) ": " / attr(data-label);
       color: var(--muted);
     }
+    /* Closed cards show only cover, title, PS Plus tag, year and couch co-op. */
+    tr.game:not(.open) td[data-label]:not(.key) { display: none; }
+    tr.game td.more { display: block; clear: both; }
+    td.more button { font: inherit; font-size: 13px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); cursor: pointer; }
   }
+  td.more { display: none; }
 </style>
 </head>
 <body>
@@ -180,11 +185,11 @@ function row(g) {
   const tags = (g.access === "claimed" ? '<span class="tag">PS Plus</span>' : "") +
     (g.access === "gone" ? `<span class="tag">Gone ${esc(g.goneOn || "")}</span>` : "");
   return `
-    <tr class="game${g.access === "gone" ? " gone" : ""}">
+    <tr class="game${g.access === "gone" ? " gone" : ""}${open === g.id ? " open" : ""}">
       <td class="cover">${g.coverUrl ? `<button type="button" data-cover="${esc(g.coverUrl)}" aria-label="Show cover of ${esc(g.title)}"><img loading="lazy" alt="" src="${esc(thumb(g.coverUrl))}"></button>` : ""}</td>
       <th scope="row"><button type="button" data-id="${esc(g.id)}" aria-expanded="${open === g.id}">${esc(g.title)}</button>${tags}</th>
-      <td data-label="Year">${esc(g.releaseYear ?? "?")}</td>
-      <td data-label="Couch co-op">${withMax(g.couchCoop, g.couchCoopMax)}</td>
+      <td data-label="Year" class="key">${esc(g.releaseYear ?? "?")}</td>
+      <td data-label="Couch co-op" class="key">${withMax(g.couchCoop, g.couchCoopMax)}</td>
       <td data-label="Genres">${esc((g.genres || ["?"]).join(", "))}</td>
       <td data-label="Platform">${esc((g.platforms || []).join(", "))}</td>
       <td data-label="Age" class="nowrap">${esc(g.ageRating ?? "?")}</td>
@@ -194,6 +199,7 @@ function row(g) {
       <td data-label="Online versus">${withMax(g.onlineVersus, g.onlineVersusMax)}</td>
       <td data-label="Players (local / online)">${players(g)}</td>
       <td data-label="Added" class="nowrap">${esc(g.addedOn)}</td>
+      <td class="more"><button type="button" data-id="${esc(g.id)}" aria-expanded="${open === g.id}">${open === g.id ? "Less" : "More..."}</button></td>
     </tr>
     ${open === g.id ? `<tr class="desc"><td colspan="13">${esc(g.description ?? "No description.")}${links(g)}</td></tr>` : ""}`;
 }
