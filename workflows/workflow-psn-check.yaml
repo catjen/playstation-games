@@ -1,0 +1,20 @@
+id: ff3e0c67-88ea-4a1b-85a9-992b9f44e48a
+name: psn-check
+description: Log in to PSN with the NPSSO in the vault and write nothing. Run by scripts/renew-psn.ps1.
+tags: {}
+jobs:
+  - name: check
+    steps:
+      - name: check
+        task:
+          type: model_method
+          modelIdOrName: psn
+          methodName: check
+          inputs:
+            npsso: ${{ vault.get("games", "psn-npsso") }}
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+    dependsOn: []
+    weight: 0
+version: 1
