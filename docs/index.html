@@ -108,12 +108,14 @@
   </table>
 </div>
 <script>
-const src = new URLSearchParams(location.search).get("src") || "games.json";
+// Only a plain file name in this folder: a crafted link must not load someone else's list.
+const asked = new URLSearchParams(location.search).get("src");
+const src = asked && /^[\w-]+\.json$/.test(asked) ? asked : "games.json";
 let games = [], sortKey = "addedOn", sortDir = -1, open = null;
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const yn = (v) => v === null || v === undefined ? "?" : v ? "Yes" : "No";
-const withMax = (v, max) => v === null || v === undefined ? "?" : v ? (max ? `Yes (${max})` : "Yes") : "No";
+const withMax = (v, max) => v === null || v === undefined ? "?" : v ? (max ? `Yes (${esc(max)})` : "Yes") : "No";
 
 function keep(g) {
   const a = $("access").value;
@@ -149,8 +151,8 @@ function row(g) {
     <tr class="game${g.access === "gone" ? " gone" : ""}">
       <td class="cover">${g.coverUrl ? `<img loading="lazy" alt="" src="${esc(g.coverUrl)}">` : ""}</td>
       <th scope="row"><button type="button" data-id="${esc(g.id)}" aria-expanded="${open === g.id}">${esc(g.title)}</button>${tags}</th>
-      <td data-label="Platform">${esc(g.platforms.join(", "))}</td>
-      <td data-label="Year">${g.releaseYear ?? "?"}</td>
+      <td data-label="Platform">${esc((g.platforms || []).join(", "))}</td>
+      <td data-label="Year">${esc(g.releaseYear ?? "?")}</td>
       <td data-label="Age">${esc(g.ageRating ?? "?")}</td>
       <td data-label="Solo story">${yn(g.soloStory)}</td>
       <td data-label="Couch co-op">${withMax(g.couchCoop, g.couchCoopMax)}</td>
