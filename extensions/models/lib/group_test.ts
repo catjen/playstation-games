@@ -18,7 +18,8 @@ function ent(productId: string, over: Partial<Entitlement> = {}): Entitlement {
 function product(productId: string, conceptId: string | null, over: Partial<StoreProduct> = {}): StoreProduct {
   return {
     productId, listed: true, conceptId, kind: "game", description: "d", releaseYear: 2020,
-    ageRating: "PEGI 7", onlineRequired: false, coverUrl: "https://img/c.png", ...over,
+    ageRating: "PEGI 7", onlineRequired: false, coverUrl: "https://img/c.png",
+    localPlayers: null, onlinePlayers: null, localCoop: null, ...over,
   };
 }
 const unlisted = (productId: string) =>
@@ -27,6 +28,7 @@ function rec(id: string, productIds: string[]): GameRecord {
   return {
     id, title: id, platforms: ["PS4"], productIds, access: "owned", addedOn: "2026-10-01", goneOn: null,
     description: null, releaseYear: null, ageRating: null, onlineRequired: null, coverUrl: null,
+    localPlayers: null, onlinePlayers: null,
     soloStory: null, couchCoop: null, couchCoopMax: null, couchVersus: null, couchVersusMax: null,
     splitScreen: null, onlineCoop: null, onlineCoopMax: null, onlineVersus: null, onlineVersusMax: null,
     genres: null, igdbId: null, matchedBy: null,

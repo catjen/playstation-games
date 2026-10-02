@@ -34,6 +34,9 @@ export const StoreProductSchema = z.object({
   ageRating: z.string().nullable(),
   onlineRequired: z.boolean().nullable(),
   coverUrl: z.string().nullable(),
+  localPlayers: z.number().int().nullable(),
+  onlinePlayers: z.number().int().nullable(),
+  localCoop: z.literal(true).nullable(),
 });
 export type StoreProduct = z.infer<typeof StoreProductSchema>;
 
@@ -45,6 +48,10 @@ export const StoreDetailsSchema = z.object({
   ageRating: z.string().nullable(),
   onlineRequired: z.boolean().nullable(),
   coverUrl: z.string().nullable(),
+  localPlayers: z.number().int().nullable(),
+  onlinePlayers: z.number().int().nullable(),
+  // Only "the store text says local co-op"; used to fill a gap IGDB leaves.
+  localCoop: z.literal(true).nullable(),
 });
 export type StoreDetails = z.infer<typeof StoreDetailsSchema>;
 
@@ -74,7 +81,10 @@ export const GameRecordSchema = z.object({
   access: z.enum(["owned", "claimed", "gone"]),
   addedOn: z.string(),
   goneOn: z.string().nullable(),
-  ...StoreDetailsSchema.omit({ id: true, kind: true }).shape,
+  ...StoreDetailsSchema.omit({ id: true, kind: true, localCoop: true, localPlayers: true, onlinePlayers: true }).shape,
+  // Defaults so lists written before these fields existed still load.
+  localPlayers: z.number().int().nullable().default(null),
+  onlinePlayers: z.number().int().nullable().default(null),
   ...IgdbDetailsSchema.omit({ id: true }).shape,
 });
 export type GameRecord = z.infer<typeof GameRecordSchema>;

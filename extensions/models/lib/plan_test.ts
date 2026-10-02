@@ -19,6 +19,7 @@ function rec(id: string, productIds: string[], over: Partial<GameRecord> = {}): 
   return {
     id, title: id, platforms: ["PS5"], productIds, access: "owned", addedOn: "2026-10-01", goneOn: null,
     description: null, releaseYear: null, ageRating: null, onlineRequired: null, coverUrl: null,
+    localPlayers: null, onlinePlayers: null,
     soloStory: null, couchCoop: null, couchCoopMax: null, couchVersus: null, couchVersusMax: null,
     splitScreen: null, onlineCoop: null, onlineCoopMax: null, onlineVersus: null, onlineVersusMax: null,
     genres: null, igdbId: null, matchedBy: null, ...over,

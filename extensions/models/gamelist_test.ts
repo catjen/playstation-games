@@ -35,6 +35,9 @@ const product = (productId: string, conceptId: string) => ({
   ageRating: "PEGI 7",
   onlineRequired: false,
   coverUrl: null,
+  localPlayers: null,
+  onlinePlayers: null,
+  localCoop: null,
 });
 
 async function repo(list: unknown | null) {

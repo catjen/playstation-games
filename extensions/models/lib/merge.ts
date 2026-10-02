@@ -7,7 +7,21 @@ function storeFields(s: StoreDetails, fallbackCover: string | null) {
     ageRating: s.ageRating,
     onlineRequired: s.onlineRequired,
     coverUrl: s.coverUrl ?? fallbackCover,
+    localPlayers: s.localPlayers,
+    onlinePlayers: s.onlinePlayers,
   };
+}
+
+// IGDB lacks multiplayer data for many games; the store fills only the gaps it
+// leaves, never overriding an answer IGDB gave.
+function couchFromStore(r: GameRecord, s: StoreDetails): GameRecord {
+  if (s.localPlayers === 1) {
+    return { ...r, couchCoop: r.couchCoop ?? false, couchVersus: r.couchVersus ?? false };
+  }
+  if (r.couchCoop === null && s.localCoop) {
+    return { ...r, couchCoop: true, couchCoopMax: s.localPlayers };
+  }
+  return r;
 }
 
 function igdbFields(d: IgdbDetails) {
@@ -29,6 +43,8 @@ function blank(lib: LibraryGame, today: string): GameRecord {
     ageRating: null,
     onlineRequired: null,
     coverUrl: lib.imageUrl,
+    localPlayers: null,
+    onlinePlayers: null,
     soloStory: null,
     couchCoop: null,
     couchCoopMax: null,
@@ -66,7 +82,7 @@ export function applyRun(a: {
     if (s?.kind === "other") continue;
     const d = igdbById.get(lib.id);
     const old = oldById.get(lib.id);
-    const next: GameRecord = {
+    const merged: GameRecord = {
       ...(old ?? blank(lib, a.today)),
       title: lib.title,
       platforms: lib.platforms,
@@ -76,6 +92,7 @@ export function applyRun(a: {
       ...(s ? storeFields(s, lib.imageUrl) : {}),
       ...(d ? igdbFields(d) : {}),
     };
+    const next = s ? couchFromStore(merged, s) : merged;
     if (!old) added.push(lib.id);
     else if (JSON.stringify(old) !== JSON.stringify(next)) updated.push(lib.id);
     games.push(next);

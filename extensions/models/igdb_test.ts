@@ -24,6 +24,9 @@ const store = (id: string, year: number) => ({
   ageRating: null,
   onlineRequired: null,
   coverUrl: null,
+  localPlayers: null,
+  onlinePlayers: null,
+  localCoop: null,
 });
 
 function fakeIgdb(routes: Record<string, (body: string) => unknown[]>) {

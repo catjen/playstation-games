@@ -26,6 +26,9 @@ function store(id: string, over: Partial<StoreDetails> = {}): StoreDetails {
     ageRating: "PEGI 12",
     onlineRequired: false,
     coverUrl: "https://img/cover.png",
+    localPlayers: null,
+    onlinePlayers: null,
+    localCoop: null,
     ...over,
   };
 }
@@ -49,7 +52,7 @@ function igdb(id: string, over: Partial<IgdbDetails> = {}): IgdbDetails {
   };
 }
 function record(id: string, over: Partial<GameRecord> = {}): GameRecord {
-  const { id: _s, kind: _k, ...s } = store(id);
+  const { id: _s, kind: _k, localCoop: _c, ...s } = store(id);
   const { id: _i, ...g } = igdb(id);
   return {
     id,
@@ -193,4 +196,44 @@ Deno.test("a product bought later is added to the game's product ids", () => {
   });
   assertEquals(r.games[0].productIds, ["P-concept:1", "P5-new"]);
   assertEquals(r.updated, ["concept:1"]);
+});
+
+Deno.test("the store fills couch co-op when IGDB does not know", () => {
+  const r = applyRun({
+    existing: [],
+    library: [lib("concept:1")],
+    store: [store("concept:1", { localCoop: true, localPlayers: 4 })],
+    igdb: [igdb("concept:1", { couchCoop: null, couchCoopMax: null })],
+    today: TODAY,
+  });
+  assertEquals([r.games[0].couchCoop, r.games[0].couchCoopMax, r.games[0].localPlayers], [true, 4, 4]);
+});
+
+Deno.test("IGDB's couch answer wins over the store text", () => {
+  const r = applyRun({
+    existing: [],
+    library: [lib("concept:1")],
+    store: [store("concept:1", { localCoop: true })],
+    igdb: [igdb("concept:1", { couchCoop: false })],
+    today: TODAY,
+  });
+  assertEquals(r.games[0].couchCoop, false);
+});
+
+Deno.test("one local player means no couch play at all", () => {
+  const r = applyRun({
+    existing: [],
+    library: [lib("concept:1")],
+    store: [store("concept:1", { localPlayers: 1 })],
+    igdb: [igdb("concept:1", { couchCoop: null, couchVersus: null })],
+    today: TODAY,
+  });
+  assertEquals([r.games[0].couchCoop, r.games[0].couchVersus], [false, false]);
+});
+
+Deno.test("a list written before the player-count fields existed still loads", async () => {
+  const { GameListSchema } = await import("./schemas.ts");
+  const { localPlayers: _l, onlinePlayers: _o, ...old } = record("concept:1");
+  const list = GameListSchema.parse({ lastSync: "2026-10-02", games: [old] });
+  assertEquals([list.games[0].localPlayers, list.games[0].onlinePlayers], [null, null]);
 });

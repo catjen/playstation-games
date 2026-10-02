@@ -47,6 +47,9 @@ export function groupLibrary(a: {
       ageRating: p.ageRating,
       onlineRequired: p.onlineRequired,
       coverUrl: p.coverUrl,
+      localPlayers: p.localPlayers,
+      onlinePlayers: p.onlinePlayers,
+      localCoop: p.localCoop,
     });
   }
   return { games, ids, store };

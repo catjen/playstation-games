@@ -27,6 +27,9 @@ function plainText(html: string): string {
     .trim();
 }
 
+const LOCAL_COOP =
+  /\b(local|couch|split[- ]?screen|same[- ]screen|shared[- ]screen)\b[^.\n]{0,40}\bco-?op|\bco-?op\b[^.\n]{0,20}\b(local|couch|split[- ]?screen)\b/i;
+
 // Sony stores Norwegian midnight as 22:00 or 23:00 UTC the day before; shifting
 // by half a day gives the local calendar year.
 function yearOf(iso: string | undefined): number | null {
@@ -47,13 +50,20 @@ export function mapProduct(productId: string, p: Raw | null | undefined): StoreP
       ageRating: null,
       onlineRequired: null,
       coverUrl: null,
+      localPlayers: null,
+      onlinePlayers: null,
+      localCoop: null,
     };
   }
   const conceptRef: string | undefined = p.concept?.__ref ?? (p.concept?.id ? `Concept:${p.concept.id}` : undefined);
   const category: string | undefined = p.topCategory ?? p.type;
   const descriptions: Raw[] = p.descriptions ?? [];
   const text = descriptions.find((d) => d.type === "SHORT")?.value ?? descriptions.find((d) => d.type === "LONG")?.value;
-  const online = (p.compatibilityNoticesByPlatform?.Common ?? []).find((n: Raw) => n.type === "ONLINE_PLAY_MODE")?.value;
+  const notices: Raw[] = p.compatibilityNoticesByPlatform?.Common ?? [];
+  const notice = (...types: string[]) => notices.find((n) => types.includes(n.type))?.value;
+  const online = notice("ONLINE_PLAY_MODE");
+  const count = (v: string | undefined) => (v && /^\d+$/.test(v) ? Number(v) : null);
+  const allText = descriptions.filter((d) => d.type === "SHORT" || d.type === "LONG").map((d) => plainText(d.value)).join("\n");
   const media: Raw[] = p.media ?? [];
   const cover = media.find((m) => m.role === "MASTER")?.url ?? media.find((m) => m.role === "GAMEHUB_COVER_ART")?.url;
   return {
@@ -66,5 +76,8 @@ export function mapProduct(productId: string, p: Raw | null | undefined): StoreP
     ageRating: p.contentRating?.description ?? null,
     onlineRequired: online === "REQUIRED" ? true : online === "OPTIONAL" ? false : null,
     coverUrl: cover ?? null,
+    localPlayers: count(notice("NO_OF_PLAYERS")),
+    onlinePlayers: count(notice("NO_OF_NETWORK_PLAYERS", "NO_OF_NETWORK_PLAYERS_PS_PLUS")),
+    localCoop: LOCAL_COOP.test(allText) ? true : null,
   };
 }

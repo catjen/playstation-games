@@ -69,3 +69,18 @@ Deno.test("the product record is extracted from the page's embedded caches", () 
   assertEquals(extractProduct(html, "P1"), { id: "P1", name: "One", topCategory: "GAME" });
   assertEquals(extractProduct(html, "P2"), null);
 });
+
+Deno.test("player counts come from the store notices, either network notice", () => {
+  assertEquals([map(WOBBLY).localPlayers, map(WOBBLY).onlinePlayers], [4, 4]);
+  assertEquals([map(OUTLAST).localPlayers, map(OUTLAST).onlinePlayers], [null, 4]);
+  assertEquals(map(AWAYOUT).localPlayers, null);
+});
+
+Deno.test("local co-op is read from the store text", () => {
+  const withText = (value: string) =>
+    mapProduct("X", { id: "X", descriptions: [{ type: "LONG", value }] }).localCoop;
+  assertEquals(withText("1-4 players Online and Local split-screen co-op<br/>"), true);
+  assertEquals(withText("Play couch co-op with a friend."), true);
+  assertEquals(withText("Team up in online co-op with up to 4 players."), null);
+  assertEquals(withText("A lonely journey."), null);
+});
