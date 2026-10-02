@@ -6,6 +6,13 @@
 $ErrorActionPreference = "Stop"
 Set-Location (Join-Path $PSScriptRoot "..")
 
+# Run without a keyboard (e.g. through Claude Code's ! prefix), the Enter prompt
+# below returns at once and the clipboard is read before the bookmark is clicked.
+if ([Console]::IsInputRedirected) {
+    Write-Host "Run this in your own PowerShell window: it waits for you to press Enter."
+    exit 1
+}
+
 Write-Host "Opening the Sony page that holds your login token."
 Write-Host "If it shows an error, log in at https://www.playstation.com first, then reload it."
 Start-Process "https://ca.account.sony.com/api/v1/ssocookie"
