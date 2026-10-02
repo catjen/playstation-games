@@ -110,16 +110,16 @@
       <tr>
         <td></td>
         <th scope="col" data-k="title" title="Click a title for its description and links"><button type="button">Title</button></th>
-        <th scope="col" data-k="platforms"><button type="button">Platform</button></th>
         <th scope="col" data-k="releaseYear"><button type="button">Year</button></th>
+        <th scope="col" data-k="couchCoopMax" title="Play together on one console (max players)"><button type="button">Couch co-op</button></th>
+        <th scope="col" data-k="genres"><button type="button">Genres</button></th>
+        <th scope="col" data-k="platforms"><button type="button">Platform</button></th>
         <th scope="col" data-k="ageRating"><button type="button">Age</button></th>
         <th scope="col" data-k="soloStory" title="Has a story you can play through alone"><button type="button">Solo</button></th>
-        <th scope="col" data-k="couchCoopMax" title="Play together on one console (max players)"><button type="button">Couch co-op</button></th>
         <th scope="col" data-k="couchVersusMax" title="Play against each other on one console (max players)"><button type="button">Couch versus</button></th>
         <th scope="col" data-k="onlineCoop" title="Play together over the internet (max players)"><button type="button">Online co-op</button></th>
         <th scope="col" data-k="onlineVersus" title="Play against others over the internet (max players)"><button type="button">Online versus</button></th>
         <th scope="col" data-k="localPlayers" title="Players on one console / over the internet, from the PlayStation Store"><button type="button">Players</button></th>
-        <th scope="col" data-k="genres"><button type="button">Genres</button></th>
         <th scope="col" data-k="addedOn" aria-sort="descending" title="When the game first appeared in this list (the first import is all one date)"><button type="button">Added</button></th>
       </tr>
     </thead>
@@ -183,16 +183,16 @@ function row(g) {
     <tr class="game${g.access === "gone" ? " gone" : ""}">
       <td class="cover">${g.coverUrl ? `<button type="button" data-cover="${esc(g.coverUrl)}" aria-label="Show cover of ${esc(g.title)}"><img loading="lazy" alt="" src="${esc(thumb(g.coverUrl))}"></button>` : ""}</td>
       <th scope="row"><button type="button" data-id="${esc(g.id)}" aria-expanded="${open === g.id}">${esc(g.title)}</button>${tags}</th>
-      <td data-label="Platform">${esc((g.platforms || []).join(", "))}</td>
       <td data-label="Year">${esc(g.releaseYear ?? "?")}</td>
+      <td data-label="Couch co-op">${withMax(g.couchCoop, g.couchCoopMax)}</td>
+      <td data-label="Genres">${esc((g.genres || ["?"]).join(", "))}</td>
+      <td data-label="Platform">${esc((g.platforms || []).join(", "))}</td>
       <td data-label="Age" class="nowrap">${esc(g.ageRating ?? "?")}</td>
       <td data-label="Solo story">${yn(g.soloStory)}</td>
-      <td data-label="Couch co-op">${withMax(g.couchCoop, g.couchCoopMax)}</td>
       <td data-label="Couch versus">${withMax(g.couchVersus, g.couchVersusMax)}</td>
       <td data-label="Online co-op">${withMax(g.onlineCoop, g.onlineCoopMax)}</td>
       <td data-label="Online versus">${withMax(g.onlineVersus, g.onlineVersusMax)}</td>
       <td data-label="Players (local / online)">${players(g)}</td>
-      <td data-label="Genres">${esc((g.genres || ["?"]).join(", "))}</td>
       <td data-label="Added" class="nowrap">${esc(g.addedOn)}</td>
     </tr>
     ${open === g.id ? `<tr class="desc"><td colspan="13">${esc(g.description ?? "No description.")}${links(g)}</td></tr>` : ""}`;
