@@ -31,26 +31,29 @@ exists; the design keeps adding a field cheap.
 ```
 Task Scheduler (monthly)
   -> swamp workflow "monthly-sync"
-       1. psn.sync        token from vault -> access token
-                          -> purchased games (access: owned or claimed)
-                          -> rotated refresh token saved back to vault
-       2. diff            library minus docs/games.json = new games
-                          (rebuild mode: every game counts as new)
-       3. psn.details     per new game: description, release date, PEGI rating,
-                          player counts, online flag, cover image URL
-       4. igdb.details    per new game, matched as in "IGDB matching": solo
+       1. psn.library     NPSSO from vault -> access token -> every
+                          entitlement on the account
+       2. gamelist.plan   entitlements whose product is not in docs/games.json
+                          yet (rebuild mode: all)
+       3. psn.details     store product page per new product: concept, game or
+                          add-on, description, release date, PEGI rating,
+                          online required, cover image
+       4. gamelist.group  entitlements -> one Game per concept; decides which
+                          Games need IGDB details
+       5. igdb.details    per new Game, matched as in "IGDB matching": solo
                           story, couch/online co-op and versus (+ max players),
                           split screen, genres
-       5. write           add new entries, refresh account facts on existing
-                          ones, write docs/games.json
-       6. git             commit "Add N games, update M" + push -> Pages rebuilds
+       6. gamelist.write  add new entries, refresh account facts on existing
+                          ones, set lastSync, write docs/games.json
+       7. git             commit + push -> Pages rebuilds
 ```
 
 Units and their single job:
 
-- **`psn` model** (extension). Auth (NPSSO -> tokens, refresh, write back the
-  rotated refresh token), list purchased games, fetch store details for a set
-  of games. No knowledge of the list file.
+- **`psn` model** (extension). Auth (NPSSO -> tokens on every run), list the
+  account's entitlements, fetch store product pages. No knowledge of the list
+  file. See `2026-10-01-api-findings.md` for why there is no stored refresh
+  token and why grouping needs the store.
 - **`igdb` model** (extension). Twitch client-credentials auth, title search,
   multiplayer-mode lookup for a set of titles. Paced to IGDB's 4 requests/s.
 - **List logic** (pure functions, no I/O): diff, merge, title normalisation for
@@ -92,6 +95,7 @@ default. If it shows up again, its access is recalculated as usual and
   "id": "concept:10001234",
   "title": "It Takes Two",
   "platforms": ["PS5"],
+  "productIds": ["EP0006-CUSA08004_00-AWAYOUTEU0000000"],
   "access": "owned",
   "addedOn": "2026-10-01",
   "goneOn": null,
@@ -134,6 +138,14 @@ also offers a "couch: any" filter matching either couch field.
 `onlineRequired` (unplayable without a connection) comes from the store's
 "Online play required" notice, which is often missing, so expect many `null`.
 
+Entitlements the store has no product page for (apps, old demos, delisted
+games) are dropped when the name says demo, beta, trial or alpha, or is a known
+streaming app; anything else is kept with unknown details, so a delisted game
+does not vanish. Records also keep their `productIds` (an account fact), so a
+later run only looks up products it has not seen.
+
+`games.json` is `{ "lastSync": "YYYY-MM-DD", "games": [...] }`.
+
 Any field a source cannot answer is `null`, shown on the page as "?". The file
 is machine-owned: it is not edited by hand, and any run may overwrite it.
 
@@ -164,8 +176,7 @@ gives an exact answer:
 
 ## Secrets
 
-Vault keys: `psn-npsso`, `psn-refresh-token`, `igdb-client-id`,
-`igdb-client-secret`. Nothing secret is written to `docs/`, to swamp data that is
+Vault keys: `psn-npsso`, `igdb-client-id`, `igdb-client-secret`. Nothing secret is written to `docs/`, to swamp data that is
 committed, or to logs.
 
 Vault type `local_encryption` (verified 01.10.2026 with a throwaway vault):
@@ -179,10 +190,14 @@ secret) and losing them on a PC rebuild only means pasting them again.
 Getting the NPSSO: log in at playstation.com, then open
 `https://ca.account.sony.com/api/v1/ssocookie` and copy the `npsso` value.
 
-Open point to verify in implementation: whether Sony issues a new refresh token
-on every refresh. If yes, monthly runs keep the login alive indefinitely. If
-no, a new NPSSO is needed roughly every two months, and the failure message
-says so.
+Answered by the probe (02.10.2026): refresh tokens last 10 days and do not
+rotate, so every run uses the NPSSO, which has to be renewed about every two
+months. `scripts/renew-psn.ps1` opens the ssocookie page, takes the new value
+with hidden input into the vault, and checks the login. The user asked whether
+Claude could renew it by driving Chrome, or build an automation that reads it
+from Chrome; declined: it means handling a login credential and defeating
+Chrome's cookie encryption, which on this domain-joined work PC looks exactly
+like credential-stealing malware.
 
 ## Error handling
 
@@ -195,8 +210,11 @@ Rule: a run either completes or changes nothing in `docs/`.
 - **Unexpected response shape**: responses are validated with zod; a mismatch
   fails the run instead of writing garbage.
 - **Push fails**: the commit stays local; the next run pushes it.
-- **Failure visibility**: Task Scheduler's last-run result plus the swamp
-  method/workflow report.
+- **Failure visibility**: every successful run writes `lastSync` into
+  `games.json` (and commits even when no game changed). The page shows
+  "Updated <date>"; when `lastSync` is more than 40 days old it shows a red
+  banner saying the sync has stopped and how to renew the PSN login. Decided
+  02.10.2026 after the probe showed the login must be renewed regularly.
 
 ## Testing
 
@@ -214,13 +232,11 @@ TDD, test first, for the list logic and the response mapping:
 
 ## Out of scope for the MVP
 
-- Failure alerts of any kind (page staleness banner, Windows notification).
-  Decided 01.10.2026: nothing for now; a failing sync is noticed when the
-  list stops changing.
+- Failure alerts beyond the page banner (e-mail, Windows notification).
 - Play time or trophy data.
 
 ## Setup the user does once
 
 1. Create the public GitHub repo and enable Pages from `main` / `docs`.
 2. Register a Twitch developer app (free) for the IGDB client ID and secret.
-3. Put the four secrets in the vault.
+3. Put the three secrets in the vault.

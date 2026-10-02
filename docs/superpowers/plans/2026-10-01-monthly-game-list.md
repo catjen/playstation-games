@@ -2142,3 +2142,42 @@ git push
 - [ ] **Step 8: Hand over to the user**
 
 Tell the user: the Pages URL, the schedule (1st of each month at 10:00, or at next start if the PC was off), how to ask for a rebuild (`swamp workflow run monthly-sync --input mode=rebuild`), what to do when PSN login expires (the `RENEW_STEPS` text), and the probe's answer on refresh-token rotation.
+
+---
+
+## Amendment after Task 1 (02.10.2026)
+
+The probe (`docs/superpowers/specs/2026-10-01-api-findings.md`) invalidated three
+assumptions. These changes supersede the task text above where they conflict.
+
+1. **Auth.** No stored refresh token, no `psn-login` workflow. `psn.library` takes
+   `npsso` (from `vault.get("games", "psn-npsso")`) and logs in on every run. A
+   failed login throws `RENEW_STEPS`, which points at `scripts/renew-psn.ps1`. A
+   `psn.check({ npsso })` method logs in and writes nothing, for the renew script.
+2. **Grouping needs the store.** The purchased list has no concept IDs, so
+   `psn.library` writes raw entitlements, and grouping happens after the store
+   lookup:
+   - `lib/store_map.ts`: `extractProduct(html, productId)` returns the merged
+     `Product:<productId>` record or `null`; `mapProduct(productId, product)`
+     returns `StoreProduct { productId, listed, conceptId, kind, description,
+     releaseYear, ageRating, onlineRequired, coverUrl }`. Tests against
+     `fixtures/store_products.json` (game, online-required game, add-on, app with
+     no product).
+   - `lib/plan.ts`: `productsToLookUp(existing, entitlements, mode)` and
+     `checkPlausible(existing, entitlements)` (a listed game is missing when none
+     of its `productIds` is on the account).
+   - `lib/group.ts`: `groupLibrary({ entitlements, existing, products, mode })`
+     returns `{ games: LibraryGame[], ids: string[], store: StoreDetails[] }`.
+     Concept comes from the store product, else from the existing record that
+     already holds that product ID, else `title:<titleId>`. Drops add-ons and
+     unlisted demo/beta/trial/alpha/app entitlements.
+   - `LibraryGame` and `GameRecord` gain `productIds: string[]` (account fact).
+   - `gamelist` gains a `group` method; `plan` now writes `{ productIds }`.
+3. **Staleness banner.** `games.json` becomes `{ lastSync, games }`. `write`
+   always writes the file with `lastSync = today` (unless dry run) and its
+   summary message is never null ("Sync: no game changes" when nothing else
+   changed), so every monthly run commits and the page can tell a stale list
+   from a quiet month. The page shows "Updated <date>" and a red banner with
+   the renew steps when `lastSync` is over 40 days old.
+
+Workflow order: `library -> plan -> store -> group -> igdb -> write -> commit -> push`.
