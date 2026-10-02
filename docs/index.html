@@ -68,7 +68,7 @@
       gap: 12px; padding: 0 12px 12px;
     }
     tr.game {
-      display: grid; grid-template-columns: 72px 1fr; column-gap: 12px; align-items: start; align-content: start;
+      display: grid; grid-template-columns: 72px 1fr auto; column-gap: 12px; align-items: start; align-content: start;
       border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
     }
     tr.desc { grid-column: 1 / -1; border-radius: 10px; overflow: hidden; }
@@ -84,8 +84,11 @@
     tr.game.open td.summary { display: none; }
     tr.game td.summary, tr.game td.more { display: block; }
     td.summary .genres { color: var(--muted); font-size: 13px; }
-    tr.game td.more { padding-block-start: 6px; }
-    td.more button { font: inherit; font-size: 13px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); cursor: pointer; }
+    /* A small arrow in the corner instead of a More line keeps cards low; the
+       whole card is tappable too. */
+    tr.game > td.more { grid-column: 3; grid-row: 1; padding: 0; }
+    tr.game { cursor: pointer; }
+    td.more button { font: inherit; font-size: 18px; line-height: 1; padding: 4px 6px; border: 0; background: none; color: var(--muted); cursor: pointer; }
   }
 </style>
 </head>
@@ -216,7 +219,7 @@ function row(g) {
       <td data-label="Online versus">${withMax(g.onlineVersus, g.onlineVersusMax)}</td>
       <td data-label="Players (local / online)">${players(g)}</td>
       <td data-label="Added" class="nowrap">${esc(g.addedOn)}</td>
-      <td class="more"><button type="button" data-id="${esc(g.id)}" aria-expanded="${open === g.id}">${open === g.id ? "Less" : "More..."}</button></td>
+      <td class="more"><button type="button" data-id="${esc(g.id)}" aria-expanded="${open === g.id}" aria-label="${open === g.id ? "Less" : "More"}">${open === g.id ? "&#9652;" : "&#9662;"}</button></td>
     </tr>
     ${open === g.id ? `<tr class="desc"><td colspan="13">${esc(g.description ?? "No description.")}${links(g)}</td></tr>` : ""}`;
 }
@@ -242,12 +245,15 @@ $("rows").addEventListener("click", (e) => {
     $("cover").showModal();
     return;
   }
-  const b = e.target.closest("button[data-id]");
+  let b = e.target.closest("button[data-id]");
+  // On cards a tap anywhere opens or closes the card, except on links.
+  if (!b && CARDS.matches && !e.target.closest("a")) b = e.target.closest("tr.game")?.querySelector("button[data-id]");
   if (!b) return;
   open = open === b.dataset.id ? null : b.dataset.id;
   render();
   document.querySelector(`button[data-id="${CSS.escape(b.dataset.id)}"]`)?.focus();
 });
+const CARDS = matchMedia("(max-width: 699px), (max-height: 520px)");
 // A click anywhere on the open cover (or its backdrop) closes it; Esc works natively.
 $("cover").addEventListener("click", () => $("cover").close());
 ["q", "access", "platform", "couch", "online", "solo"].forEach((id) => $(id).addEventListener("input", render));
