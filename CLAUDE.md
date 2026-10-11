@@ -42,3 +42,18 @@ schema of the CLI (commands, options, arguments) intended for agent
 consumption, run `swamp help [<command>...]` — e.g. `swamp help` returns
 the full tree, and `swamp help model method run` scopes to a subtree.
 <!-- END swamp managed section -->
+
+## This repo
+
+- Private project on the `catjen` GitHub account (`catjen/playstation-games`,
+  Pages at https://catjen.github.io/playstation-games/), never on the work
+  account `Jensen_nordic`. Commit with catjen's noreply address
+  `958914+catjen@users.noreply.github.com`: a push with the work email was
+  declined on 02.10.2026.
+- The PSN NPSSO token lasts 60 days. The owner renews it with
+  `scripts/renew-psn.ps1` in their own terminal (it needs a keyboard and the
+  "Kopier PSN token" bookmarklet). Automating token retrieval from Chrome was
+  declined as credential extraction on a work PC: do not offer it again.
+- The `@catjen/psn`, `@catjen/igdb` and `@catjen/gamelist` models stay local.
+  Nothing from this project goes to swamp-club (owner decision 02.10.2026): do
+  not offer `swamp extension push`.
