@@ -52,8 +52,10 @@ the full tree, and `swamp help model method run` scopes to a subtree.
   declined on 02.10.2026.
 - The PSN NPSSO token lasts 60 days. The owner renews it with
   `scripts/renew-psn.ps1` in their own terminal (it needs a keyboard and the
-  "Kopier PSN token" bookmarklet). Automating token retrieval from Chrome was
-  declined as credential extraction on a work PC: do not offer it again.
+  "Kopier PSN token" bookmarklet). The owner wants automating the renewal
+  offered (decision 11.10.2026). On 02.10.2026 Claude declined to read the
+  token out of Chrome's cookie store on the work PC; weigh a route that does
+  not extract browser credentials first.
 - The `@catjen/psn`, `@catjen/igdb` and `@catjen/gamelist` models stay local.
   Nothing from this project goes to swamp-club (owner decision 02.10.2026): do
   not offer `swamp extension push`.
