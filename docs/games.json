@@ -1,6 +1,120 @@
 {
-  "lastSync": "2026-10-02",
+  "lastSync": "2026-11-01",
   "games": [
+    {
+      "id": "concept:10008165",
+      "title": "EARTH DEFENSE FORCE: WORLD BROTHERS 2",
+      "platforms": [
+        "PS4",
+        "PS5"
+      ],
+      "productIds": [
+        "EP3036-PPSA15928_00-EDFWORLDBROTHER2",
+        "EP3036-PPSA15928_00-EDFWORLDBROTHER2"
+      ],
+      "access": "claimed",
+      "addedOn": "2026-11-01",
+      "goneOn": null,
+      "description": "The Earth is in pieces...again! We've gotta do more to save the planet!",
+      "releaseYear": 2024,
+      "ageRating": null,
+      "onlineRequired": false,
+      "coverUrl": "https://image.api.playstation.com/vulcan/ap/rnd/202402/0803/e9b205a3007e3dab6c7e35d9a18a580393450c7abf15d048.png",
+      "localPlayers": 1,
+      "onlinePlayers": 4,
+      "soloStory": true,
+      "couchCoop": false,
+      "couchCoopMax": null,
+      "couchVersus": false,
+      "couchVersusMax": null,
+      "splitScreen": null,
+      "onlineCoop": null,
+      "onlineCoopMax": null,
+      "onlineVersus": null,
+      "onlineVersusMax": null,
+      "genres": [
+        "Shooter",
+        "Strategy"
+      ],
+      "igdbId": 268010,
+      "igdbUrl": "https://www.igdb.com/games/earth-defense-force-world-brothers-2",
+      "matchedBy": "psn-id"
+    },
+    {
+      "id": "concept:234014",
+      "title": "HUNT: SHOWDOWN 1896",
+      "platforms": [
+        "PS5"
+      ],
+      "productIds": [
+        "EP4291-PPSA16357_00-0286411811680806"
+      ],
+      "access": "claimed",
+      "addedOn": "2026-11-01",
+      "goneOn": null,
+      "description": "Hunt: Showdown 1896 is a new era of the addictively unforgiving extraction shooter. In corrupted backwaters lost to history, fight back alone – or with friends – against timeless evil. Twisted monsters and other ruthless Hunters stand between you and your Bounty. Risk everything as Hunt consumes you.\n\nBounty Hunt: Take rich bounties and kill anyone that tries to stop you – and they will try. Race competing Hunters to track down bosses, send them to hell, claim their bounty, and fight your way to extract. If others only slow you down, go alone. If you find strength in numbers, take up to two teammates along.\n\nProgression and Permadeath: Risk everything to unlock dark powers and forbidden wealth. Every bullet counts. Every wound hurts. And every death is permanent. But if you succeed, every victory will be unforgettable.\n\nAtmosphere and Sound Design: Hear footsteps squelch in the mud as you wait with bated breath to strike. The world speaks. Every gunshot is a message; every howling dog a klaxon. Gramophones murmur with the haunting melodies of Port Sulphur Band. Listen, and you might live to die another day.\n\nConstantly Evolving Game: Keep striving for more, the world is always growing. Frequent updates challenge you with new Events, expand your arsenal of weapons, introduce new characters, and offer the chance to get ornate rewards. Join the thriving Hunt community, stay informed, and get an edge over the Corruption.",
+      "releaseYear": 2024,
+      "ageRating": null,
+      "onlineRequired": true,
+      "coverUrl": "https://image.api.playstation.com/vulcan/ap/rnd/202610/0715/8d589eb7d8efc65df7430505f95c270040659e6d75fcb13c.png",
+      "localPlayers": null,
+      "onlinePlayers": 12,
+      "soloStory": true,
+      "couchCoop": false,
+      "couchCoopMax": null,
+      "couchVersus": false,
+      "couchVersusMax": null,
+      "splitScreen": false,
+      "onlineCoop": true,
+      "onlineCoopMax": 3,
+      "onlineVersus": null,
+      "onlineVersusMax": null,
+      "genres": [
+        "Shooter",
+        "Simulator"
+      ],
+      "igdbId": 7291,
+      "igdbUrl": "https://www.igdb.com/games/hunt-showdown-1896",
+      "matchedBy": "psn-id"
+    },
+    {
+      "id": "concept:10011830",
+      "title": "F1 25",
+      "platforms": [
+        "PS5"
+      ],
+      "productIds": [
+        "UP0006-PPSA24662_00-F12025PS5GAME000"
+      ],
+      "access": "claimed",
+      "addedOn": "2026-11-01",
+      "goneOn": null,
+      "description": "This Story is Yours",
+      "releaseYear": 2025,
+      "ageRating": null,
+      "onlineRequired": true,
+      "coverUrl": "https://image.api.playstation.com/vulcan/ap/rnd/202505/1521/44c15449fbe9485987e27e2fa2c86008a7b4a89d9ab7e0a8.png",
+      "localPlayers": 2,
+      "onlinePlayers": 22,
+      "soloStory": true,
+      "couchCoop": null,
+      "couchCoopMax": null,
+      "couchVersus": null,
+      "couchVersusMax": null,
+      "splitScreen": null,
+      "onlineCoop": null,
+      "onlineCoopMax": null,
+      "onlineVersus": null,
+      "onlineVersusMax": null,
+      "genres": [
+        "Racing",
+        "Simulator",
+        "Sport"
+      ],
+      "igdbId": 337977,
+      "igdbUrl": "https://www.igdb.com/games/f1-25-iconic-edition",
+      "matchedBy": "psn-id"
+    },
     {
       "id": "concept:10003362",
       "title": "Chained Echoes",
@@ -8065,9 +8179,9 @@
       "localPlayers": 1,
       "onlinePlayers": 4,
       "soloStory": null,
-      "couchCoop": false,
+      "couchCoop": null,
       "couchCoopMax": null,
-      "couchVersus": false,
+      "couchVersus": null,
       "couchVersusMax": null,
       "splitScreen": null,
       "onlineCoop": null,
