@@ -9,9 +9,21 @@ $pwsh = (Get-Command pwsh).Source
 $script = Join-Path $PSScriptRoot "monthly-games-mail.ps1"
 schtasks /Create /SC MONTHLY /MO FIRST /D WED /ST 09:00 /TN $name /TR "`"$pwsh`" -NoProfile -File `"$script`"" /F
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-$task = Get-ScheduledTask -TaskName $name
-$task.Settings.StartWhenAvailable = $true
-$task.Settings.DisallowStartIfOnBatteries = $false
-$task.Settings.StopIfGoingOnBatteries = $false
-Set-ScheduledTask -InputObject $task | Out-Null
+# Set-ScheduledTask cannot write back a first-Wednesday trigger ("The parameter
+# is incorrect", 04.11.2026), so the settings go through the task's XML instead.
+[xml]$xml = schtasks /Query /TN $name /XML
+$settings = $xml.Task.Settings
+# schtasks leaves out settings that hold their default, so add any that are missing.
+foreach ($pair in @(@("StartWhenAvailable", "true"), @("DisallowStartIfOnBatteries", "false"), @("StopIfGoingOnBatteries", "false"))) {
+    $node = $settings[$pair[0]]
+    if (-not $node) { $node = $settings.AppendChild($xml.CreateElement($pair[0], $xml.Task.NamespaceURI)) }
+    $node.InnerText = $pair[1]
+}
+$file = Join-Path "C:\project\temp" "monthly-games-task.xml"
+New-Item -ItemType Directory -Force (Split-Path $file) | Out-Null
+$xml.Save($file)
+schtasks /Create /TN $name /XML $file /F
+$created = $LASTEXITCODE
+Remove-Item $file
+if ($created -ne 0) { exit $created }
 Write-Host "Next run: $((Get-ScheduledTaskInfo -TaskName $name).NextRunTime)"
