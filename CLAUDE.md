@@ -64,6 +64,11 @@ directly). Every `swamp model …` spelling remains supported.
   offered (decision 11.10.2026). On 02.10.2026 Claude declined to read the
   token out of Chrome's cookie store on the work PC; weigh a route that does
   not extract browser credentials first.
+- "Check for new monthly games" means `swamp workflow run monthly-games`: it
+  lists this month's PS Plus games and links the ones not yet claimed. Claiming
+  stays a tap in the PS app: the owner chose a read-only reminder over
+  automated claiming (04.11.2026), since claiming goes through Sony's checkout
+  (money, account ban risk).
 - The `@catjen/psn`, `@catjen/igdb` and `@catjen/gamelist` models stay local.
   Nothing from this project goes to swamp-club (owner decision 02.10.2026): do
   not offer `swamp extension push`.

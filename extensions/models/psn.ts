@@ -2,6 +2,7 @@ import { z } from "npm:zod@4";
 import { exchangeAccessCodeForAuthTokens, exchangeNpssoForAccessCode } from "npm:psn-api@2.18.1";
 import { tooManyFailures } from "./lib/failures.ts";
 import { fetchAllEntitlements } from "./lib/psn_library.ts";
+import { isClaimed, monthlyGamePaths, type PlusOffer, plusOffer } from "./lib/monthly.ts";
 import { fetchProductPage } from "./lib/store_client.ts";
 import { extractProduct, mapProduct } from "./lib/store_map.ts";
 import { type Entitlement, EntitlementSchema, type StoreProduct, StoreProductSchema } from "./lib/schemas.ts";
@@ -24,6 +25,13 @@ const liveClient: Client = {
 };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const liveSite = async (path: string) => {
+  const res = await fetch(`https://www.playstation.com${path}`, {
+    headers: { "User-Agent": "Mozilla/5.0 (playstation-games list sync)" },
+  });
+  if (!res.ok) throw new Error(`${path} failed with status ${res.status}`);
+  return await res.text();
+};
 const liveStore = async (productId: string) => {
   await sleep(150);
   return await fetchProductPage(productId, "en-NO");
@@ -42,7 +50,7 @@ export const NpssoArgs = z.object({ npsso: z.string().trim().length(64) });
 
 export const model = {
   type: "@catjen/psn",
-  version: "2026.10.02.1",
+  version: "2026.11.04.1",
   globalArguments: z.object({}),
   resources: {
     library: {
@@ -54,6 +62,20 @@ export const model = {
     store: {
       description: "Store product data for looked-up products",
       schema: z.object({ products: z.array(StoreProductSchema) }),
+      lifetime: "infinite",
+      garbageCollection: 6,
+    },
+    monthly: {
+      description: "This month's PS Plus games and whether the account has claimed them",
+      schema: z.object({
+        games: z.array(z.object({
+          name: z.string(),
+          conceptId: z.string(),
+          productId: z.string(),
+          claimed: z.boolean(),
+          url: z.string(),
+        })),
+      }),
       lifetime: "infinite",
       garbageCollection: 6,
     },
@@ -108,6 +130,44 @@ export const model = {
           failed: args.productIds.length - products.length,
         });
         return { dataHandles: [await context.writeResource("store", "store", { products })] };
+      },
+    },
+    monthly: {
+      description: "Read this month's PS Plus games from playstation.com and list the ones not yet claimed",
+      arguments: z.object({ entitlements: z.array(EntitlementSchema) }),
+      execute: async (
+        args: { entitlements: Entitlement[]; _site?: (path: string) => Promise<string> },
+        // deno-lint-ignore no-explicit-any
+        context: any,
+      ) => {
+        const site = args._site ?? liveSite;
+        const paths = monthlyGamePaths(await site("/en-no/ps-plus/whats-new/"));
+        const offers: PlusOffer[] = [];
+        for (const path of paths) {
+          try {
+            const offer = plusOffer(await site(path));
+            if (!offer) throw new Error("no PS Plus offer on the page");
+            offers.push(offer);
+          } catch (err) {
+            context.logger.warning("Monthly game {path} skipped: {error}", { path, error: (err as Error).message });
+          }
+        }
+        if (offers.length === 0) {
+          throw new Error(`None of the ${paths.length} monthly game pages has a PS Plus offer; the pages may have changed.`);
+        }
+        const games = offers.map((o) => ({
+          ...o,
+          claimed: isClaimed(o.productId, args.entitlements),
+          url: `https://store.playstation.com/en-no/concept/${o.conceptId}`,
+        }));
+        for (const g of games.filter((g) => !g.claimed)) {
+          context.logger.info("Not claimed: {name} {url}", { name: g.name, url: g.url });
+        }
+        context.logger.info("Monthly games: {count}, {unclaimed} not claimed", {
+          count: games.length,
+          unclaimed: games.filter((g) => !g.claimed).length,
+        });
+        return { dataHandles: [await context.writeResource("monthly", "monthly", { games })] };
       },
     },
   },

@@ -1,0 +1,26 @@
+id: 013205bf-a28f-4fd2-bd65-4f5da3727fc8
+name: monthly-games
+description: List this month's PS Plus games and link the ones not yet claimed. Reads only; claiming stays a tap in the PS app.
+version: 1
+tags: {}
+jobs:
+  - name: check
+    steps:
+      - name: library
+        task:
+          type: model_method
+          modelIdOrName: psn
+          methodName: library
+          inputs:
+            npsso: ${{ vault.get("games", "psn-npsso") }}
+      - name: monthly
+        dependsOn:
+          - step: library
+            condition:
+              type: succeeded
+        task:
+          type: model_method
+          modelIdOrName: psn
+          methodName: monthly
+          inputs:
+            entitlements: ${{ data.latest("psn", "library").attributes.entitlements }}
