@@ -2,7 +2,7 @@ import { z } from "npm:zod@4";
 import { exchangeAccessCodeForAuthTokens, exchangeNpssoForAccessCode } from "npm:psn-api@2.18.1";
 import { tooManyFailures } from "./lib/failures.ts";
 import { fetchAllEntitlements } from "./lib/psn_library.ts";
-import { isClaimed, monthlyGamePaths, type PlusOffer, plusOffer } from "./lib/monthly.ts";
+import { isClaimed, monthlyGamePaths, type PlusOffer, plusOffer, reminder } from "./lib/monthly.ts";
 import { fetchProductPage } from "./lib/store_client.ts";
 import { extractProduct, mapProduct } from "./lib/store_map.ts";
 import { type Entitlement, EntitlementSchema, type StoreProduct, StoreProductSchema } from "./lib/schemas.ts";
@@ -50,7 +50,7 @@ export const NpssoArgs = z.object({ npsso: z.string().trim().length(64) });
 
 export const model = {
   type: "@catjen/psn",
-  version: "2026.11.04.1",
+  version: "2026.11.04.2",
   globalArguments: z.object({}),
   resources: {
     library: {
@@ -75,6 +75,7 @@ export const model = {
           claimed: z.boolean(),
           url: z.string(),
         })),
+        reminder: z.object({ subject: z.string(), body: z.string() }).nullable(),
       }),
       lifetime: "infinite",
       garbageCollection: 6,
@@ -167,7 +168,7 @@ export const model = {
           count: games.length,
           unclaimed: games.filter((g) => !g.claimed).length,
         });
-        return { dataHandles: [await context.writeResource("monthly", "monthly", { games })] };
+        return { dataHandles: [await context.writeResource("monthly", "monthly", { games, reminder: reminder(games) })] };
       },
     },
   },

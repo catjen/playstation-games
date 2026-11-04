@@ -5,6 +5,18 @@
 What Windows Task Scheduler runs once a month. Runs the `monthly-sync` swamp
 workflow and writes its JSON output to `.swamp/last-monthly-sync.json`.
 
+## monthly-games-mail.ps1
+
+What Windows Task Scheduler runs on the first Wednesday of each month. Runs the
+`monthly-games` swamp workflow and mails the PS Plus monthly games not yet
+claimed, with store links, to the Hotmail account through `hotmail-writer send`
+in the `mail-and-drive-organiser` checkout next to this repo. A failed check is
+mailed too. Register the task once per machine with:
+
+```
+pwsh -File scripts/register-monthly-games-task.ps1
+```
+
 ## renew-psn.ps1
 
 Run this when the game list page shows the red "not updated" banner: the PSN

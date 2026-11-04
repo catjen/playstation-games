@@ -82,6 +82,7 @@ Deno.test("monthly lists this month's games, marks those on the account, and lin
     { name: "Monster Train 2", conceptId: "10012399", productId: MT2, claimed: false, url: "https://store.playstation.com/en-no/concept/10012399" },
   ]);
   assertEquals(getLogsByLevel("warning").length, 1);
+  assertEquals((out(getWrittenResources(), "monthly").reminder as { subject: string }).subject, "PS Plus: 1 game to claim");
 });
 
 Deno.test("monthly fails and writes nothing when no game page yields a PS Plus offer", async () => {

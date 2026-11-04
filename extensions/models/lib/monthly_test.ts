@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from "@std/assert";
-import { isClaimed, monthlyGamePaths, plusOffer } from "./monthly.ts";
+import { isClaimed, monthlyGamePaths, plusOffer, reminder } from "./monthly.ts";
 import type { Entitlement } from "./schemas.ts";
 
 // Shaped like playstation.com/en-no/ps-plus/whats-new/ on 04.11.2026.
@@ -59,4 +59,20 @@ Deno.test("a game is claimed when any entitlement shares its title id, whatever 
   assertEquals(isClaimed(offer, [ent("EP8909-PPSA25758_00-0700653113516281", "PPSA25758_00")]), true);
   assertEquals(isClaimed(offer, [ent("EP8909-CUSA11111_00-0000000000000000", "PPSA25758_00")]), true);
   assertEquals(isClaimed(offer, [ent("EP8909-PPSA99999_00-0047300101977880", "PPSA99999_00")]), false);
+});
+
+const game = (name: string, claimed: boolean) => ({
+  name, claimed, conceptId: "1", productId: "P", url: `https://store.playstation.com/en-no/concept/${name.length}`,
+});
+
+Deno.test("the reminder names each unclaimed game with its link and leaves out the claimed ones", () => {
+  const r = reminder([game("Dead Island 2", false), game("Monster Train 2", true), game("Tomb Raider", false)]);
+  assertEquals(r?.subject, "PS Plus: 2 games to claim");
+  assertEquals(r?.body.includes("Dead Island 2\nhttps://store.playstation.com/en-no/concept/13"), true);
+  assertEquals(r?.body.includes("Tomb Raider\nhttps://store.playstation.com/en-no/concept/11"), true);
+  assertEquals(r?.body.includes("Monster Train 2"), false);
+});
+
+Deno.test("there is no reminder when every monthly game is claimed", () => {
+  assertEquals(reminder([game("Dead Island 2", true)]), null);
 });

@@ -68,7 +68,9 @@ directly). Every `swamp model …` spelling remains supported.
   lists this month's PS Plus games and links the ones not yet claimed. Claiming
   stays a tap in the PS app: the owner chose a read-only reminder over
   automated claiming (04.11.2026), since claiming goes through Sony's checkout
-  (money, account ban risk).
+  (money, account ban risk). `scripts/monthly-games-mail.ps1` mails the list
+  monthly through the Hotmail sender in the `mail-and-drive-organiser` repo;
+  the recipient is read from that repo, never written in this public one.
 - The `@catjen/psn`, `@catjen/igdb` and `@catjen/gamelist` models stay local.
   Nothing from this project goes to swamp-club (owner decision 02.10.2026): do
   not offer `swamp extension push`.
