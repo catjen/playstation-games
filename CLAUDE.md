@@ -71,6 +71,10 @@ directly). Every `swamp model …` spelling remains supported.
   (money, account ban risk). `scripts/monthly-games-mail.ps1` mails the list
   monthly through the Hotmail sender in the `mail-and-drive-organiser` repo;
   the recipient is read from that repo, never written in this public one.
+- The laptop (CATOJLAPTOP2) owns the monthly sync (owner decision
+  05.11.2026): `scripts/monthly-sync-mail.ps1` runs it on the first Thursday
+  and mails the games it added. Only one machine may run the sync, since both
+  would push `docs/games.json`; the desktop's old task is to be switched off.
 - The `@catjen/psn`, `@catjen/igdb` and `@catjen/gamelist` models stay local.
   Nothing from this project goes to swamp-club (owner decision 02.10.2026): do
   not offer `swamp extension push`.

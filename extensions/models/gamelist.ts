@@ -2,7 +2,7 @@ import { z } from "npm:zod@4";
 import { groupLibrary } from "./lib/group.ts";
 import { applyRun } from "./lib/merge.ts";
 import { checkPlausible, type Mode, productsToLookUp } from "./lib/plan.ts";
-import { commitMessage } from "./lib/summary.ts";
+import { commitMessage, newGamesMail } from "./lib/summary.ts";
 import {
   type Entitlement,
   EntitlementSchema,
@@ -35,7 +35,7 @@ const listPath = (context: any) => `${context.repoDir}/${context.globalArgs.path
 
 export const model = {
   type: "@catjen/gamelist",
-  version: "2026.10.02.4",
+  version: "2026.11.05.1",
   globalArguments: Global,
   resources: {
     plan: {
@@ -64,6 +64,7 @@ export const model = {
         dryRun: z.boolean(),
         // The commit step runs only when this is true; git refuses an empty commit.
         fileChanged: z.boolean(),
+        mail: z.object({ subject: z.string(), body: z.string() }).nullable(),
       }),
       lifetime: "infinite",
       garbageCollection: 12,
@@ -133,6 +134,7 @@ export const model = {
           gone: r.gone.length,
           dryRun: args.dryRun,
           fileChanged,
+          mail: newGamesMail(r.games.filter((g) => r.added.includes(g.id)).map((g) => g.title)),
         });
         return { dataHandles: [handle] };
       },

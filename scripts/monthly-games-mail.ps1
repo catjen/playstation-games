@@ -5,15 +5,7 @@
 # PSN login expires every 60 days and nothing else would tell.
 $ErrorActionPreference = "Stop"
 Set-Location (Join-Path $PSScriptRoot "..")
-$mailRepo = Join-Path $PSScriptRoot "..\..\mail-and-drive-organiser"
-
-function Send-Reminder($subject, $body) {
-    # The address is read from the mail repo so this public repo never holds it.
-    $to = (& swamp data query 'behavior("hotmail-writer") && name == "auth"' --select 'content.account' --json --repo-dir $mailRepo | ConvertFrom-Json).results[0]
-    @{ to = @($to); subject = $subject; body = $body; apply = $true } | ConvertTo-Json -Compress |
-        & swamp behavior run hotmail-writer send --repo-dir $mailRepo --stdin --literal-inputs | Out-Null
-    return $LASTEXITCODE
-}
+. (Join-Path $PSScriptRoot "send-mail.ps1")
 
 & swamp workflow run monthly-games --json | Out-File -Encoding ascii (Join-Path ".swamp" "last-monthly-games.json")
 if ($LASTEXITCODE -ne 0) {

@@ -1,6 +1,7 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import { createModelTestContext } from "@swamp-club/swamp-testing";
 import { model } from "./gamelist.ts";
+import { newGamesMail } from "./lib/summary.ts";
 
 type Written = { specName: string; data: Record<string, unknown> }[];
 const out = (w: Written, spec: string) => w.find((r) => r.specName === spec)?.data as Record<string, unknown>;
@@ -88,6 +89,14 @@ Deno.test("write creates the list with the sync date and reports the change", as
   assertEquals(JSON.parse(text).lastSync, "2026-10-01");
   assertEquals(JSON.parse(text).games[0].addedOn, "2026-10-01");
   assertEquals(out(c.getWrittenResources(), "summary").message, "Add 1 game");
+});
+
+Deno.test("write puts a mail naming the added games in the summary, and none when nothing was added", async () => {
+  const dir = await repo(null);
+  const first = await write(dir, [lib("concept:1")]);
+  assertEquals(out(first.getWrittenResources(), "summary").mail, newGamesMail(["Game concept:1"]));
+  const second = await write(dir, [lib("concept:1")], { today: "2026-11-01" });
+  assertEquals(out(second.getWrittenResources(), "summary").mail, null);
 });
 
 Deno.test("a dry run reports the change but leaves the file untouched", async () => {

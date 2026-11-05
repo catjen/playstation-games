@@ -17,6 +17,18 @@ mailed too. Register the task once per machine with:
 pwsh -File scripts/register-monthly-games-task.ps1
 ```
 
+## monthly-sync-mail.ps1
+
+What Windows Task Scheduler runs on the first Thursday of each month, the day
+after the PS Plus mail. Runs `monthly-sync.ps1`, which updates the game list
+page, and mails the names of the games it added, with the page link. Nothing is
+mailed when no game was added; a failed sync is mailed. Register the task once,
+on the one machine that owns the sync:
+
+```
+pwsh -File scripts/register-monthly-games-task.ps1 -Name "playstation-games monthly-sync mail" -Script monthly-sync-mail.ps1 -Day THU
+```
+
 ## renew-psn.ps1
 
 Run this when the game list page shows the red "not updated" banner: the PSN
