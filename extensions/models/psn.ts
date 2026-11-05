@@ -50,7 +50,7 @@ export const NpssoArgs = z.object({ npsso: z.string().trim().length(64) });
 
 export const model = {
   type: "@catjen/psn",
-  version: "2026.11.04.2",
+  version: "2026.11.05.1",
   globalArguments: z.object({}),
   resources: {
     library: {

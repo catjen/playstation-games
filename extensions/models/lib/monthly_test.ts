@@ -68,6 +68,7 @@ const game = (name: string, claimed: boolean) => ({
 Deno.test("the reminder names each unclaimed game with its link and leaves out the claimed ones", () => {
   const r = reminder([game("Dead Island 2", false), game("Monster Train 2", true), game("Tomb Raider", false)]);
   assertEquals(r?.subject, "PS Plus: 2 games to claim");
+  assertEquals(r?.body.startsWith("https://www.playstation.com/en-no/ps-plus/whats-new/#monthly-games\n"), true);
   assertEquals(r?.body.includes("Dead Island 2\nhttps://store.playstation.com/en-no/concept/13"), true);
   assertEquals(r?.body.includes("Tomb Raider\nhttps://store.playstation.com/en-no/concept/11"), true);
   assertEquals(r?.body.includes("Monster Train 2"), false);

@@ -35,13 +35,16 @@ export function isClaimed(productId: string, entitlements: Entitlement[]): boole
 
 export type MonthlyGame = PlusOffer & { claimed: boolean; url: string };
 
+export const MONTHLY_PAGE = "https://www.playstation.com/en-no/ps-plus/whats-new/#monthly-games";
+
 export function reminder(games: MonthlyGame[]): { subject: string; body: string } | null {
   const open = games.filter((g) => !g.claimed);
   if (open.length === 0) return null;
   return {
     subject: `PS Plus: ${open.length} ${open.length === 1 ? "game" : "games"} to claim`,
     body: [
-      "This month's PS Plus games not yet in your library. Open a link on the phone and tap Add to Library.",
+      `${MONTHLY_PAGE}\nAll of this month's PS Plus games; tap a game, then Add to Library.`,
+      "Not yet in your library:",
       ...open.map((g) => `${g.name}\n${g.url}`),
     ].join("\n\n"),
   };
